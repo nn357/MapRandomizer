@@ -2190,6 +2190,18 @@ impl<'a> MapPatcher<'a> {
         }
     }
 
+    fn build_area_bitmask(&self) -> isize {
+        let mut bitmask: isize = 0;
+
+        for &area in &self.map.area {
+            if area < 6 {
+                bitmask |= 1 << area;
+            }
+        }
+
+        bitmask
+    }
+
     fn set_initial_map(&mut self) -> Result<()> {
         let revealed_addr = snes2pc(0xB5F000);
         let partially_revealed_addr = snes2pc(0xB5F800);
@@ -2201,7 +2213,7 @@ impl<'a> MapPatcher<'a> {
 
         if imr_settings.all_areas {
             // allow pause map area switching to all areas from start of game:
-            self.rom.write_u16(area_seen_addr, 0x003F)?;
+            self.rom.write_u16(area_seen_addr, self.build_area_bitmask())?; // fix for small maps with global maps enabled.
         } else {
             self.rom.write_u16(area_seen_addr, 0x0000)?;
         }
