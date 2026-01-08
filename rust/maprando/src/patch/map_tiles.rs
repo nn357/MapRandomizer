@@ -2194,9 +2194,7 @@ impl<'a> MapPatcher<'a> {
         let mut bitmask: isize = 0;
 
         for &area in &self.map.area {
-            if area < 6 {
-                bitmask |= 1 << area;
-            }
+            bitmask |= 1 << area;
         }
 
         bitmask
