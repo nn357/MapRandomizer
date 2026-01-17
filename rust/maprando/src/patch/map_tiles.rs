@@ -2194,10 +2194,48 @@ impl<'a> MapPatcher<'a> {
         let mut bitmask: isize = 0;
 
         for &area in &self.map.area {
-                bitmask |= 1 << area;
-            }
+            bitmask |= 1 << area;
+        }
 
         bitmask
+    }
+
+//    fn debug_print_rooms(&self) {
+//        let map = &self.randomization.map;
+//
+//        for i in 0..map.rooms.len() {
+//            println!(
+//                "Room {}: pos={:?}, area={}, subarea={}, subsubarea={}, masked={}",
+//                i, map.rooms[i], map.area[i], map.subarea[i], map.subsubarea[i], map.room_mask[i],
+//            );
+//        }
+//        
+//    }
+
+    fn debug_print_room_summary_by_area(&self) {
+    let map = &self.randomization.map;
+
+    let max_area = 5;
+
+    for area_id in 0..=max_area {
+        let mut masked = 0;
+        let mut unmasked = 0;
+
+        for i in 0..map.rooms.len() {
+            if map.area[i] == area_id {
+                if map.room_mask[i] {
+                    masked += 1;
+                } else {
+                    unmasked += 1;
+                }
+            }
+        }
+
+        println!(
+            "Area {}: {} masked rooms, {} unmasked rooms",
+            area_id, masked, unmasked
+        );
+    }
     }
 
     fn set_initial_map(&mut self) -> Result<()> {
@@ -2211,14 +2249,20 @@ impl<'a> MapPatcher<'a> {
 
         if imr_settings.all_areas {
             // allow pause map area switching to all areas from start of game:
-            self.rom.write_u16(area_seen_addr, self.build_imr_bitmask())?;
+            self.rom
+                .write_u16(area_seen_addr, self.build_imr_bitmask())?;
+            
         } else {
             self.rom.write_u16(area_seen_addr, 0x0000)?;
         }
+        
 
         // Initialize all tiles to not-revealed by default
         self.rom.write_n(revealed_addr, &vec![0; 0x600])?;
         self.rom.write_n(partially_revealed_addr, &vec![0; 0x600])?;
+        //self.debug_print_rooms();
+        self.debug_print_room_summary_by_area();
+
 
         for (&(area, x, y), tile) in &self.map_tile_map {
             let local_x = x - self.area_offset_x[area];
