@@ -1,5 +1,5 @@
 {
-    "version": 121,
+    "version": 122,
     "name": "Mentor Tournament",
     "skill_assumption_settings": {
         "preset": "Medium",
@@ -23,7 +23,7 @@
         "phantoon_proficiency": 0.3,
         "draygon_proficiency": 0.3,
         "ridley_proficiency": 0.15,
-        "botwoon_proficiency": 0.3,
+        "botwoon_proficiency": 0.15,
         "mother_brain_proficiency": 0.3,
         "escape_timer_multiplier": 2.0,
         "tech_settings": [
@@ -2304,13 +2304,6 @@
             },
             {
                 "room_id": 189,
-                "notable_id": 2,
-                "room_name": "Colosseum",
-                "notable_name": "Mochtroid Suitless, HiJumpless Ice Climb",
-                "enabled": false
-            },
-            {
-                "room_id": 189,
                 "notable_id": 6,
                 "room_name": "Colosseum",
                 "notable_name": "Spike Platforming with Move Assist (Left to Right)",
@@ -2601,6 +2594,13 @@
                 "notable_id": 8,
                 "room_name": "Aqueduct",
                 "notable_name": "Blue Space Jump",
+                "enabled": false
+            },
+            {
+                "room_id": 189,
+                "notable_id": 2,
+                "room_name": "Colosseum",
+                "notable_name": "Mochtroid Suitless, HiJumpless Ice Climb",
                 "enabled": false
             },
             {
@@ -4270,7 +4270,7 @@
         "item_pool": [
             {
                 "item": "Missile",
-                "count": 44
+                "count": 45
             },
             {
                 "item": "ETank",
@@ -4286,7 +4286,7 @@
             },
             {
                 "item": "PowerBomb",
-                "count": 10
+                "count": 9
             },
             {
                 "item": "Charge",
@@ -4330,6 +4330,14 @@
             },
             {
                 "item": "SpeedBooster",
+                "count": 1
+            },
+            {
+                "item": "SparkBooster",
+                "count": 1
+            },
+            {
+                "item": "BlueBooster",
                 "count": 1
             },
             {
@@ -4424,6 +4432,14 @@
                 "count": 0
             },
             {
+                "item": "SparkBooster",
+                "count": 0
+            },
+            {
+                "item": "BlueBooster",
+                "count": 0
+            },
+            {
                 "item": "SpringBall",
                 "count": 0
             },
@@ -4507,6 +4523,14 @@
             },
             {
                 "item": "SpeedBooster",
+                "priority": "Default"
+            },
+            {
+                "item": "SparkBooster",
+                "priority": "Late"
+            },
+            {
+                "item": "BlueBooster",
                 "priority": "Default"
             },
             {
@@ -4596,6 +4620,14 @@
                 "priority": "No"
             },
             {
+                "item": "SparkBooster",
+                "priority": "No"
+            },
+            {
+                "item": "BlueBooster",
+                "priority": "No"
+            },
+            {
                 "item": "SpringBall",
                 "priority": "No"
             },
@@ -4670,10 +4702,10 @@
         "fast_baby_cutscene": true,
         "fast_mother_brain_cutscene": true,
         "fast_decompression": true,
-        "fanfares": "Off",
         "respin": false,
         "infinite_space_jump": false,
         "momentum_conservation": false,
+        "fanfares": "Off",
         "all_items_spawn": true,
         "acid_chozo": true,
         "remove_climb_lava": true,
@@ -4801,22 +4833,22 @@
     "save_animals": "No",
     "other_settings": {
         "wall_jump": "Vanilla",
+        "speed_booster": "Vanilla",
         "area_assignment": {
-            "preset": "Size",
-            "base_order": "Size",
+            "preset": "Depth",
+            "base_order": "Depth",
             "ship_in_crateria": false,
             "mother_brain_in_tourian": false
         },
         "door_locks_size": "Large",
+        "maps_revealed": null,
         "map_station_reveal": "Full",
         "energy_free_shinesparks": false,
         "all_enemies_respawn": false,
+        "race_mode": true,
+        "random_seed": null,
         "disable_spikesuit": false,
         "disable_bluesuit": false,
-        "enable_major_glitches": false,
-        "speed_booster": "Vanilla",
-        "race_mode": true,
-        "random_seed": null
-    },
-    "debug": false
+        "enable_major_glitches": false
+    }
 }

@@ -1,13 +1,13 @@
 {
     "version": 122,
-    "name": "Default",
+    "name": "Community Race Season 5",
     "skill_assumption_settings": {
-        "preset": "Basic",
-        "shinespark_tiles": 33,
-        "heated_shinespark_tiles": 33,
-        "speed_ball_tiles": 65,
-        "shinecharge_leniency_frames": 120,
-        "resource_multiplier": 4,
+        "preset": "Hard",
+        "shinespark_tiles": 20,
+        "heated_shinespark_tiles": 24,
+        "speed_ball_tiles": 35,
+        "shinecharge_leniency_frames": 60,
+        "resource_multiplier": 1.75,
         "farm_time_limit": 90,
         "gate_glitch_leniency": 14,
         "door_stuck_leniency": 2,
@@ -20,12 +20,12 @@
         "spike_speed_keep_leniency": 4,
         "elevator_cf_leniency": 8,
         "crystal_spark_leniency": 14,
-        "phantoon_proficiency": 0,
-        "draygon_proficiency": 0,
-        "ridley_proficiency": 0,
-        "botwoon_proficiency": 0,
-        "mother_brain_proficiency": 0,
-        "escape_timer_multiplier": 3.6,
+        "phantoon_proficiency": 0.5,
+        "draygon_proficiency": 0.5,
+        "ridley_proficiency": 0.3,
+        "botwoon_proficiency": 0.3,
+        "mother_brain_proficiency": 0.5,
+        "escape_timer_multiplier": 1.6,
         "tech_settings": [
             {
                 "id": 6,
@@ -55,282 +55,282 @@
             {
                 "id": 7,
                 "name": "canSuitlessMaridia",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 10,
                 "name": "canSpaceJumpWaterBounce",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 12,
                 "name": "canDisableEquipment",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 21,
                 "name": "canDownGrab",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 58,
                 "name": "canCrouchJump",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 61,
                 "name": "canGravityJump",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 64,
                 "name": "canSpringBallJumpMidAir",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 71,
                 "name": "canCarefulJump",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 77,
                 "name": "canPreciseWallJump",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 80,
                 "name": "canConsecutiveWallJump",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 87,
                 "name": "canBombHorizontally",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 89,
                 "name": "canIBJ",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 212,
                 "name": "canSpeedyJump",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 133,
                 "name": "canHorizontalShinespark",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 136,
                 "name": "canShinechargeMovement",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 134,
                 "name": "canMidairShinespark",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 167,
                 "name": "canAwakenZebes",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 5,
                 "name": "canSuitlessLavaDive",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 8,
                 "name": "canSunkenTileWideWallClimb",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 9,
                 "name": "canCrossRoomJumpIntoWater",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 13,
                 "name": "canPlayInSand",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 18,
                 "name": "canManageReserves",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 24,
                 "name": "canMoonwalk",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 30,
                 "name": "canResetFallSpeed",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 33,
                 "name": "canWallJumpInstantMorph",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 37,
                 "name": "canLateralMidAirMorph",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 41,
                 "name": "canMockball",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 44,
                 "name": "canTwoTileSqueeze",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 240,
                 "name": "canBufferedMomentumConservingTurnaround",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 51,
                 "name": "canPreciseGrapple",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 185,
                 "name": "canMorphTurnaround",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 62,
                 "name": "canUseIFrames",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 65,
                 "name": "canTrickySpringBallJump",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 78,
                 "name": "canTrickyWallJump",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 193,
                 "name": "canLongIBJ",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 90,
                 "name": "canJumpIntoIBJ",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 98,
                 "name": "canPowerBombMidIBJ",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 102,
                 "name": "canSnailClimb",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 103,
                 "name": "canNeutralDamageBoost",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 110,
                 "name": "canMochtroidIceClimb",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 111,
                 "name": "canTrickyUseFrozenEnemies",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 116,
                 "name": "canDodgeWhileShooting",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 122,
                 "name": "canHitbox",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 123,
                 "name": "canPseudoScrew",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 126,
                 "name": "canOffScreenSuperShot",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 127,
                 "name": "canGateGlitch",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 130,
                 "name": "canHeroShot",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 10001,
                 "name": "canHyperGateShot",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 244,
                 "name": "canHorizontalMidairShinespark",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 150,
                 "name": "canWaterShineCharge",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 152,
                 "name": "canXRayWaitForIFrames",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 155,
                 "name": "canXRayStandUp",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 169,
                 "name": "canCeilingClip",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 170,
                 "name": "canXRayCeilingClip",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 174,
                 "name": "canCrystalFlash",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 182,
                 "name": "canCameraManip",
-                "enabled": false
+                "enabled": true
             },
             {
                 "id": 4,
@@ -1201,238 +1201,238 @@
                 "notable_id": 3,
                 "room_name": "Green Hill Zone",
                 "notable_name": "Wall Jump to Top Right Door",
-                "enabled": false
+                "enabled": true
             },
             {
                 "room_id": 104,
                 "notable_id": 1,
                 "room_name": "Double Chamber",
                 "notable_name": "Walljump Climb Using the Kamer",
-                "enabled": false
+                "enabled": true
             },
             {
                 "room_id": 184,
                 "notable_id": 1,
                 "room_name": "Botwoon Hallway",
                 "notable_name": "Mochtroid Ice Clip",
-                "enabled": false
+                "enabled": true
             },
             {
                 "room_id": 185,
                 "notable_id": 1,
                 "room_name": "Botwoon's Room",
                 "notable_name": "Back-Side Fight with Charge and Wave",
-                "enabled": false
+                "enabled": true
             },
             {
                 "room_id": 185,
                 "notable_id": 3,
                 "room_name": "Botwoon's Room",
                 "notable_name": "Suitless Kill",
-                "enabled": false
+                "enabled": true
             },
             {
                 "room_id": 193,
                 "notable_id": 5,
                 "room_name": "Draygon's Room",
                 "notable_name": "Grapple Kill",
-                "enabled": false
+                "enabled": true
             },
             {
                 "room_id": 10,
                 "notable_id": 1,
                 "room_name": "Parlor and Alcatraz",
                 "notable_name": "Alcatraz Escape",
-                "enabled": false
+                "enabled": true
             },
             {
                 "room_id": 41,
                 "notable_id": 2,
                 "room_name": "Blue Brinstar Energy Tank Room",
                 "notable_name": "Ceiling Damage Boost",
-                "enabled": false
+                "enabled": true
             },
             {
                 "room_id": 41,
                 "notable_id": 4,
                 "room_name": "Blue Brinstar Energy Tank Room",
                 "notable_name": "Return Through Crumble Blocks",
-                "enabled": false
+                "enabled": true
             },
             {
                 "room_id": 45,
                 "notable_id": 2,
                 "room_name": "Early Supers Room",
                 "notable_name": "Mockball",
-                "enabled": false
+                "enabled": true
             },
             {
                 "room_id": 51,
                 "notable_id": 4,
                 "room_name": "Etecoon Energy Tank Room",
                 "notable_name": "Beetom Clip",
-                "enabled": false
+                "enabled": true
             },
             {
                 "room_id": 59,
                 "notable_id": 5,
                 "room_name": "Big Pink",
                 "notable_name": "Return Through Crumble Blocks",
-                "enabled": false
+                "enabled": true
             },
             {
                 "room_id": 59,
                 "notable_id": 11,
                 "room_name": "Big Pink",
                 "notable_name": "Off Screen Super Block",
-                "enabled": false
+                "enabled": true
             },
             {
                 "room_id": 60,
                 "notable_id": 2,
                 "room_name": "Mission Impossible Room",
                 "notable_name": "Crystal Flash Clip",
-                "enabled": false
+                "enabled": true
             },
             {
                 "room_id": 61,
                 "notable_id": 2,
                 "room_name": "Pink Brinstar Wave Gate Room",
                 "notable_name": "Reverse Gate Glitch",
-                "enabled": false
+                "enabled": true
             },
             {
                 "room_id": 94,
                 "notable_id": 1,
                 "room_name": "Upper Norfair Farming Room",
                 "notable_name": "Gate Glitch With Farming",
-                "enabled": false
+                "enabled": true
             },
             {
                 "room_id": 120,
                 "notable_id": 1,
                 "room_name": "Crocomire Speedway",
                 "notable_name": "Reverse Spark",
-                "enabled": false
+                "enabled": true
             },
             {
                 "room_id": 111,
                 "notable_id": 1,
                 "room_name": "Crumble Shaft",
                 "notable_name": "Top Item Frozen Sova",
-                "enabled": false
+                "enabled": true
             },
             {
                 "room_id": 88,
                 "notable_id": 2,
                 "room_name": "Hi Jump Energy Tank Room",
                 "notable_name": "Return Through Crumble Blocks",
-                "enabled": false
+                "enabled": true
             },
             {
                 "room_id": 150,
                 "notable_id": 4,
                 "room_name": "Golden Torizo's Room",
                 "notable_name": "Horizontal Bomb Jump",
-                "enabled": false
+                "enabled": true
             },
             {
                 "room_id": 150,
                 "notable_id": 8,
                 "room_name": "Golden Torizo's Room",
                 "notable_name": "Safe Spot Kill (Lenient)",
-                "enabled": false
+                "enabled": true
             },
             {
                 "room_id": 146,
                 "notable_id": 1,
                 "room_name": "Lower Norfair Spring Ball Maze",
                 "notable_name": "Crystal Flash Clip",
-                "enabled": false
+                "enabled": true
             },
             {
                 "room_id": 176,
                 "notable_id": 2,
                 "room_name": "Crab Gate Room",
                 "notable_name": "Suitless Green Gate Glitch",
-                "enabled": false
+                "enabled": true
             },
             {
                 "room_id": 178,
                 "notable_id": 2,
                 "room_name": "Mama Turtle Room",
                 "notable_name": "Shoot Down and Grab Right Item",
-                "enabled": false
+                "enabled": true
             },
             {
                 "room_id": 170,
                 "notable_id": 1,
                 "room_name": "Maridia Tube",
                 "notable_name": "Tube Clip",
-                "enabled": false
+                "enabled": true
             },
             {
                 "room_id": 185,
                 "notable_id": 6,
                 "room_name": "Botwoon's Room",
                 "notable_name": "Back-Side Plasma Shield Microwave",
-                "enabled": false
+                "enabled": true
             },
             {
                 "room_id": 196,
                 "notable_id": 7,
                 "room_name": "East Cactus Alley",
                 "notable_name": "Suitless Bootless Space Jump",
-                "enabled": false
+                "enabled": true
             },
             {
                 "room_id": 195,
                 "notable_id": 1,
                 "room_name": "West Cactus Alley",
                 "notable_name": "Suitless HiJump Space Jump",
-                "enabled": false
+                "enabled": true
             },
             {
                 "room_id": 209,
                 "notable_id": 3,
                 "room_name": "West Sand Pit",
                 "notable_name": "Right Item Turn Around Collection",
-                "enabled": false
+                "enabled": true
             },
             {
                 "room_id": 322,
                 "notable_id": 1,
                 "room_name": "East Pants Room",
                 "notable_name": "Puyo Clip",
-                "enabled": false
+                "enabled": true
             },
             {
                 "room_id": 238,
                 "notable_id": 1,
                 "room_name": "Mother Brain Room",
                 "notable_name": "Speed Zebetite Skip",
-                "enabled": false
+                "enabled": true
             },
             {
                 "room_id": 238,
                 "notable_id": 4,
                 "room_name": "Mother Brain Room",
                 "notable_name": "Ice Zebetite Skip",
-                "enabled": false
+                "enabled": true
             },
             {
                 "room_id": 238,
                 "notable_id": 6,
                 "room_name": "Mother Brain Room",
                 "notable_name": "Reverse Mother Brain",
-                "enabled": false
+                "enabled": true
             },
             {
                 "room_id": 242,
                 "notable_id": 1,
                 "room_name": "Tourian Escape Room 4",
                 "notable_name": "Dodge While Climbing",
-                "enabled": false
+                "enabled": true
             },
             {
                 "room_id": 11,
@@ -4258,19 +4258,19 @@
         ]
     },
     "item_progression_settings": {
-        "preset": "Normal",
-        "progression_rate": "Fast",
-        "item_placement_style": "Neutral",
+        "preset": null,
+        "progression_rate": "Uniform",
+        "item_placement_style": "Forced",
         "item_priority_strength": "Moderate",
         "random_tank": true,
         "spazer_before_plasma": true,
-        "item_pool_preset": "Full",
+        "item_pool_preset": null,
         "stop_item_placement_early": false,
         "ammo_collect_fraction": 0.7,
         "item_pool": [
             {
                 "item": "Missile",
-                "count": 46
+                "count": 45
             },
             {
                 "item": "ETank",
@@ -4282,11 +4282,87 @@
             },
             {
                 "item": "Super",
-                "count": 10
+                "count": 12
             },
             {
                 "item": "PowerBomb",
-                "count": 10
+                "count": 9
+            },
+            {
+                "item": "Charge",
+                "count": 1
+            },
+            {
+                "item": "Ice",
+                "count": 1
+            },
+            {
+                "item": "Wave",
+                "count": 1
+            },
+            {
+                "item": "Spazer",
+                "count": 1
+            },
+            {
+                "item": "Plasma",
+                "count": 1
+            },
+            {
+                "item": "XRayScope",
+                "count": 1
+            },
+            {
+                "item": "Morph",
+                "count": 1
+            },
+            {
+                "item": "Bombs",
+                "count": 1
+            },
+            {
+                "item": "Grapple",
+                "count": 1
+            },
+            {
+                "item": "HiJump",
+                "count": 1
+            },
+            {
+                "item": "SpeedBooster",
+                "count": 1
+            },
+            {
+                "item": "SparkBooster",
+                "count": 1
+            },
+            {
+                "item": "BlueBooster",
+                "count": 1
+            },
+            {
+                "item": "SpringBall",
+                "count": 1
+            },
+            {
+                "item": "WallJump",
+                "count": 1
+            },
+            {
+                "item": "SpaceJump",
+                "count": 1
+            },
+            {
+                "item": "ScrewAttack",
+                "count": 1
+            },
+            {
+                "item": "Varia",
+                "count": 1
+            },
+            {
+                "item": "Gravity",
+                "count": 1
             }
         ],
         "starting_items_preset": "None",
@@ -4356,7 +4432,19 @@
                 "count": 0
             },
             {
+                "item": "SparkBooster",
+                "count": 0
+            },
+            {
+                "item": "BlueBooster",
+                "count": 0
+            },
+            {
                 "item": "SpringBall",
+                "count": 0
+            },
+            {
+                "item": "WallJump",
                 "count": 0
             },
             {
@@ -4379,43 +4467,43 @@
         "key_item_priority": [
             {
                 "item": "ETank",
-                "priority": "Default"
+                "priority": "Early"
             },
             {
                 "item": "ReserveTank",
-                "priority": "Default"
+                "priority": "Early"
             },
             {
                 "item": "Super",
-                "priority": "Default"
+                "priority": "Early"
             },
             {
                 "item": "PowerBomb",
-                "priority": "Default"
+                "priority": "Early"
             },
             {
                 "item": "Charge",
-                "priority": "Default"
+                "priority": "Early"
             },
             {
                 "item": "Ice",
-                "priority": "Default"
+                "priority": "Early"
             },
             {
                 "item": "Wave",
-                "priority": "Default"
+                "priority": "Early"
             },
             {
                 "item": "Spazer",
-                "priority": "Default"
+                "priority": "Early"
             },
             {
                 "item": "Plasma",
-                "priority": "Default"
+                "priority": "Early"
             },
             {
                 "item": "XRayScope",
-                "priority": "Default"
+                "priority": "Early"
             },
             {
                 "item": "Morph",
@@ -4427,27 +4515,27 @@
             },
             {
                 "item": "Grapple",
-                "priority": "Default"
+                "priority": "Early"
             },
             {
                 "item": "HiJump",
-                "priority": "Default"
+                "priority": "Early"
             },
             {
                 "item": "SpeedBooster",
-                "priority": "Default"
+                "priority": "Early"
             },
             {
                 "item": "SparkBooster",
-                "priority": "Late"
+                "priority": "Early"
             },
             {
                 "item": "BlueBooster",
-                "priority": "Default"
+                "priority": "Early"
             },
             {
                 "item": "SpringBall",
-                "priority": "Default"
+                "priority": "Early"
             },
             {
                 "item": "WallJump",
@@ -4566,7 +4654,7 @@
         ]
     },
     "quality_of_life_settings": {
-        "preset": "Default",
+        "preset": null,
         "enhanced_map_settings": {
             "preset": "Yes",
             "blue_doors": "Visible",
@@ -4583,9 +4671,9 @@
             "refill_station": "Icon"
         },
         "initial_map_reveal_settings": {
-            "preset": "Maps",
+            "preset": null,
             "map_stations": "Full",
-            "save_stations": "No",
+            "save_stations": "Full",
             "refill_stations": "No",
             "ship": "No",
             "objectives": "No",
@@ -4597,9 +4685,9 @@
             "other": "No",
             "all_areas": false
         },
-        "item_markers": "3-Tiered",
+        "item_markers": "4-Tiered",
         "room_outline_revealed": true,
-        "opposite_area_revealed": false,
+        "opposite_area_revealed": true,
         "hazard_markers": true,
         "mother_brain_fight": "Short",
         "supers_double": true,
@@ -4630,8 +4718,8 @@
             "sprite_overflow": "Silent"
         },
         "fix_blue_echoes": true,
-        "energy_station_reserves": false,
-        "etank_refill": "Vanilla",
+        "etank_refill": "Full",
+        "energy_station_reserves": true,
         "disableable_etanks": "Standard",
         "reserve_backward_transfer": false,
         "enemy_drops": "Buffed",
@@ -4738,29 +4826,29 @@
         "plasma_doors_count": 0
     },
     "start_location_settings": {
-        "mode": "Ship"
+        "mode": "Random",
+        "room_id": null,
+        "node_id": null
     },
     "save_animals": "No",
     "other_settings": {
         "wall_jump": "Vanilla",
-        "etank_refill": "Vanilla",
+        "speed_booster": "Vanilla",
         "area_assignment": {
-            "preset": "Standard",
-            "base_order": "Size",
-            "ship_in_crateria": true,
-            "mother_brain_in_tourian": true
+            "preset": "Depth",
+            "base_order": "Depth",
+            "ship_in_crateria": false,
+            "mother_brain_in_tourian": false
         },
-        "item_dot_change": "Fade",
-        "transition_letters": true,
         "door_locks_size": "Large",
+        "maps_revealed": null,
         "map_station_reveal": "Full",
         "energy_free_shinesparks": false,
         "all_enemies_respawn": false,
+        "race_mode": true,
+        "random_seed": null,
         "disable_spikesuit": false,
         "disable_bluesuit": false,
-        "enable_major_glitches": false,
-        "speed_booster": "Vanilla",
-        "race_mode": false,
-        "random_seed": null
+        "enable_major_glitches": false
     }
 }
