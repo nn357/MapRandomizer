@@ -1185,6 +1185,43 @@ fn upgrade_enhanced_map_settings(settings: &mut serde_json::Value) -> Result<()>
     Ok(())
 }
 
+fn upgrade_map_station_activation_settings(settings: &mut serde_json::Value) -> Result<()> {
+    // Skip if already present
+    if settings["quality_of_life_settings"]
+        .as_object()
+        .unwrap()
+        .contains_key("initial_map_reveal_settings")
+    {
+        return Ok(());
+    }
+
+    let qol_settings = settings["quality_of_life_settings"]
+        .as_object_mut()
+        .context("missing 'quality_of_life_settings'")?;
+
+    let msasettings = MapStationActivationSettings {
+        preset: Some(MapStationActivationPreset::Full),
+        save_stations: true,
+        refill_stations: true,
+        ship: true,
+        objectives: true,
+        area_transitions: true,
+        items1: true,
+        items2: true,
+        items3: true,
+        items4: true,
+        other: true,
+
+    };
+
+    qol_settings.insert(
+        "initial_map_reveal_settings".to_string(),
+        serde_json::to_value(msasettings)?,
+    );
+
+    Ok(())
+}
+
 fn upgrade_qol_settings(settings: &mut serde_json::Value) -> Result<()> {
     let etank_refill = settings["other_settings"]["etank_refill"]
         .as_str()
@@ -1283,6 +1320,7 @@ fn upgrade_qol_settings(settings: &mut serde_json::Value) -> Result<()> {
     }
 
     upgrade_initial_map_reveal_settings(settings)?;
+    upgrade_map_station_activation_settings(settings)?;
     upgrade_enhanced_map_settings(settings)?;
     Ok(())
 }
