@@ -15,11 +15,11 @@
                                 stations</label>
                             <div id="mapStationActivationRevealSaves" class="col-sm-5 col-lg-4 btn-group">
                                 <input type="radio" class="btn-check" name="map_station_activation_saves"
-                                    id="mapStationActivationSavesNo" value="No" checked
+                                    id="mapStationActivationSavesNo" value="false" checked
                                     onchange="mapStationActivationSettingChanged()">
                                 <label class="btn btn-outline-primary" for="mapStationActivationSavesNo">No</label>
                                 <input type="radio" class="btn-check" name="map_station_activation_saves"
-                                    id="mapStationActivationSavesYes" value="Yes"
+                                    id="mapStationActivationSavesYes" value="true"
                                     onchange="mapStationActivationSettingChanged()">
                                 <label class="btn btn-outline-primary" for="mapStationActivationSavesYes">Yes</label>
                             </div>
@@ -29,11 +29,11 @@
                                 stations</label>
                             <div id="mapStationActivationRevealRefils" class="col-sm-5 col-lg-4 btn-group">
                                 <input type="radio" class="btn-check" name="map_station_activation_refils"
-                                    id="mapStationActivationRefilsNo" value="No" checked
+                                    id="mapStationActivationRefilsNo" value="false" checked
                                     onchange="mapStationActivationSettingChanged()">
                                 <label class="btn btn-outline-primary" for="mapStationActivationRefilsNo">No</label>
                                 <input type="radio" class="btn-check" name="map_station_activation_refils"
-                                    id="mapStationActivationRefilsYes" value="Yes"
+                                    id="mapStationActivationRefilsYes" value="true"
                                     onchange="mapStationActivationSettingChanged()">
                                 <label class="btn btn-outline-primary" for="mapStationActivationRefilsYes">Yes</label>
                             </div>
@@ -43,13 +43,114 @@
                                 class="col-md-7 col-lg-5 col-form-label">Ship</label>
                             <div id="mapStationActivationRevealShip" class="col-sm-5 col-lg-4 btn-group">
                                 <input type="radio" class="btn-check" name="map_station_activation_ship"
-                                    id="mapStationActivationShipNo" value="No" checked
+                                    id="mapStationActivationShipNo" value="false" checked
                                     onchange="mapStationActivationSettingChanged()">
-                                <label class="btn btn-outline-primary" for="mapStationActivationRefilsNo">No</label>
+                                <label class="btn btn-outline-primary" for="mapStationActivationShipNo">No</label>
                                 <input type="radio" class="btn-check" name="map_station_activation_ship"
-                                    id="mapStationActivationShipYes" value="Yes"
+                                    id="mapStationActivationShipYes" value="true"
                                     onchange="mapStationActivationSettingChanged()">
-                                <label class="btn btn-outline-primary" for="mapStationActivationRefilsYes">Yes</label>
+                                <label class="btn btn-outline-primary" for="mapStationActivationShipYes">Yes</label>
+                            </div>
+                        </div>
+                        <div class="form-group row my-2">
+                            <label for="mapStationActivationRevealObjectives"
+                                class="col-md-7 col-lg-5 col-form-label">Objectives</label>
+                            <div id="mapStationActivationRevealObjectives" class="col-sm-5 col-lg-4 btn-group">
+                                <input type="radio" class="btn-check" name="map_station_activation_objectives"
+                                    id="mapStationActivationObjectivesNo" value="false" checked
+                                    onchange="mapStationActivationSettingChanged()">
+                                <label class="btn btn-outline-primary" for="mapStationActivationObjectivesNo">No</label>
+                                <input type="radio" class="btn-check" name="map_station_activation_objectives"
+                                    id="mapStationActivationObjectivesYes" value="true"
+                                    onchange="mapStationActivationSettingChanged()">
+                                <label class="btn btn-outline-primary"
+                                    for="mapStationActivationObjectivesYes">Yes</label>
+                            </div>
+                        </div>
+                        <div class="form-group row my-2">
+                            <label for="mapStationActivationRevealTransitions"
+                                class="col-md-7 col-lg-5 col-form-label">Area transitions</label>
+                            <div id="mapStationActivationRevealTransitions" class="col-sm-5 col-lg-4 btn-group">
+                                <input type="radio" class="btn-check" name="map_station_activation_transitions"
+                                    id="mapStationActivationTransitionsNo" value="false" checked
+                                    onchange="mapStationActivationSettingChanged()">
+                                <label class="btn btn-outline-primary"
+                                    for="mapStationActivationTransitionsNo">No</label>
+                                <input type="radio" class="btn-check" name="map_station_activation_transitions"
+                                    id="mapStationActivationTransitionsYes" value="true"
+                                    onchange="mapStationActivationSettingChanged()">
+                                <label class="btn btn-outline-primary"
+                                    for="mapStationActivationTransitionsYes">Yes</label>
+                            </div>
+                        </div>
+                        <div class="form-group row my-2">
+                            <label for="mapStationActivationRevealTier1" class="col-md-7 col-lg-5 col-form-label">Items:
+                                tier 1 (small dots)</label>
+                            <div id="mapStationActivationRevealTier1" class="col-sm-5 col-lg-4 btn-group">
+                                <input type="radio" class="btn-check" name="map_station_activation_tier1"
+                                    id="mapStationActivationTier1No" value="false" checked
+                                    onchange="mapStationActivationSettingChanged()">
+                                <label class="btn btn-outline-primary" for="mapStationActivationTier1No">No</label>
+                                <input type="radio" class="btn-check" name="map_station_activation_tier1"
+                                    id="mapStationActivationTier1Yes" value="true"
+                                    onchange="mapStationActivationSettingChanged()">
+                                <label class="btn btn-outline-primary" for="mapStationActivationTier1Yes">Yes</label>
+                            </div>
+                        </div>
+                        <div class="form-group row my-2">
+                            <label for="mapStationActivationRevealTier2" class="col-md-7 col-lg-5 col-form-label">Items:
+                                tier 2 (X's)</label>
+                            <div id="mapStationActivationRevealTier2" class="col-sm-5 col-lg-4 btn-group">
+                                <input type="radio" class="btn-check" name="map_station_activation_tier2"
+                                    id="mapStationActivationTier2No" value="false" checked
+                                    onchange="mapStationActivationSettingChanged()">
+                                <label class="btn btn-outline-primary" for="mapStationActivationTier2No">No</label>
+                                <input type="radio" class="btn-check" name="map_station_activation_tier2"
+                                    id="mapStationActivationTier2Yes" value="true"
+                                    onchange="mapStationActivationSettingChanged()">
+                                <label class="btn btn-outline-primary" for="mapStationActivationTier2Yes">Yes</label>
+                            </div>
+                        </div>
+                        <div class="form-group row my-2">
+                            <label for="mapStationActivationRevealTier3" class="col-md-7 col-lg-5 col-form-label">Items:
+                                tier 3 (hollow circles)</label>
+                            <div id="mapStationActivationRevealTier3" class="col-sm-5 col-lg-4 btn-group">
+                                <input type="radio" class="btn-check" name="map_station_activation_tier3"
+                                    id="mapStationActivationTier3No" value="false" checked
+                                    onchange="mapStationActivationSettingChanged()">
+                                <label class="btn btn-outline-primary" for="mapStationActivationTier3No">No</label>
+                                <input type="radio" class="btn-check" name="map_station_activation_tier3"
+                                    id="mapStationActivationTier3Yes" value="true"
+                                    onchange="mapStationActivationSettingChanged()">
+                                <label class="btn btn-outline-primary" for="mapStationActivationTier3Yes">Yes</label>
+                            </div>
+                        </div>
+                        <div class="form-group row my-2">
+                            <label for="mapStationActivationRevealTier4" class="col-md-7 col-lg-5 col-form-label">Items:
+                                tier 4 (large dots)</label>
+                            <div id="mapStationActivationRevealTier4" class="col-sm-5 col-lg-4 btn-group">
+                                <input type="radio" class="btn-check" name="map_station_activation_tier4"
+                                    id="mapStationActivationTier4No" value="false" checked
+                                    onchange="mapStationActivationSettingChanged()">
+                                <label class="btn btn-outline-primary" for="mapStationActivationTier4No">No</label>
+                                <input type="radio" class="btn-check" name="map_station_activation_tier4"
+                                    id="mapStationActivationTier4Yes" value="true"
+                                    onchange="mapStationActivationSettingChanged()">
+                                <label class="btn btn-outline-primary" for="mapStationActivationTier4Yes">Yes</label>
+                            </div>
+                        </div>
+                        <div class="form-group row my-2">
+                            <label for="mapStationActivationRevealOther"
+                                class="col-md-7 col-lg-5 col-form-label">Other</label>
+                            <div id="mapStationActivationRevealOther" class="col-sm-5 col-lg-4 btn-group">
+                                <input type="radio" class="btn-check" name="map_station_activation_other"
+                                    id="mapStationActivationOtherNo" value="false" checked
+                                    onchange="mapStationActivationSettingChanged()">
+                                <label class="btn btn-outline-primary" for="mapStationActivationOtherNo">No</label>
+                                <input type="radio" class="btn-check" name="map_station_activation_other"
+                                    id="mapStationActivationOtherYes" value="true"
+                                    onchange="mapStationActivationSettingChanged()">
+                                <label class="btn btn-outline-primary" for="mapStationActivationOtherYes">Yes</label>
                             </div>
                         </div>
                     </div>

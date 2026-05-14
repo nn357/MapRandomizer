@@ -306,6 +306,7 @@ pub struct QualityOfLifeSettings {
     // Map:
     pub enhanced_map_settings: EnhancedMapSettings,
     pub initial_map_reveal_settings: InitialMapRevealSettings,
+    pub map_station_activation_settings: MapStationActivationSettings,
     pub item_markers: ItemMarkers,
     pub room_outline_revealed: bool,
     pub opposite_area_revealed: bool,
@@ -414,6 +415,27 @@ pub struct InitialMapRevealSettings {
     pub items4: MapRevealLevel,
     pub other: MapRevealLevel,
     pub all_areas: bool,
+}
+
+ #[derive(Serialize, Deserialize, Clone, PartialEq)]
+pub struct MapStationActivationSettings {
+    pub preset: Option<MapStationActivationPreset>,
+    pub save_stations: bool,
+    pub refill_stations: bool,
+    pub ship: bool,
+    pub objectives: bool,
+    pub area_transitions: bool,
+    pub items1: bool,
+    pub items2: bool,
+    pub items3: bool,
+    pub items4: bool,
+    pub other: bool,
+}
+
+#[derive(Clone, Copy, Serialize, Deserialize, Debug, PartialEq)]
+pub enum MapStationActivationPreset {
+    Partial,
+    Full,
 }
 
 #[derive(Serialize, Deserialize, Clone, PartialEq)]
@@ -592,7 +614,6 @@ pub struct OtherSettings {
     pub wall_jump: WallJump,
     pub area_assignment: AreaAssignment,
     pub door_locks_size: DoorLocksSize,
-    pub map_station_reveal: MapStationReveal,
     pub energy_free_shinesparks: bool,
     pub all_enemies_respawn: bool,
     pub disable_spikesuit: bool,
@@ -835,11 +856,6 @@ pub enum ETankRefill {
     Full,
 }
 
-#[derive(Clone, Copy, Serialize, Deserialize, Debug, PartialEq)]
-pub enum MapStationReveal {
-    Partial,
-    Full,
-}
 
 #[derive(Clone, Copy, Serialize, Deserialize, Debug, PartialEq)]
 pub enum SaveAnimals {

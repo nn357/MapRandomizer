@@ -5,8 +5,8 @@ use crate::{
     randomize::{LockedDoor, Randomization},
     settings::{
         DisableETankSetting, DoorLocksSize, EnhancedMapLevel, EnhancedMapOther, EnhancedMapWalls,
-        InitialMapRevealSettings, ItemMarkers, MapRevealLevel, MapStationReveal, Objective,
-        RandomizerSettings,
+        InitialMapRevealSettings, ItemMarkers, MapRevealLevel, MapStationActivationPreset,
+        Objective, RandomizerSettings,
     },
 };
 use maprando_game::{
@@ -2605,12 +2605,25 @@ impl<'a> MapPatcher<'a> {
     }
 
     fn set_map_activation_behavior(&mut self) -> Result<()> {
-        match self.settings.other_settings.map_station_reveal {
-            MapStationReveal::Partial => {
+        match self
+            .settings
+            .quality_of_life_settings
+            .map_station_activation_settings
+            .preset
+        {
+            Some(MapStationActivationPreset::Partial) => {
                 self.rom.write_u16(snes2pc(0x90F700), 0xFFFF)?;
             }
-            MapStationReveal::Full => {}
+
+            Some(MapStationActivationPreset::Full) => {
+                //
+            }
+
+            None => {
+                //
+            }
         }
+
         Ok(())
     }
 

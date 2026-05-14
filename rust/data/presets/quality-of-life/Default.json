@@ -30,6 +30,19 @@
         "other": "No",
         "all_areas": false
     },
+    "map_station_activation_settings": {
+        "preset": "Full",
+        "save_stations": true,
+        "refill_stations": true,
+        "ship": true,
+        "objectives": true,
+        "area_transitions": true,
+        "items1": true,
+        "items2": true,
+        "items3": true,
+        "items4": true,
+        "other": true
+    },
     "item_markers": "3-Tiered",
     "room_outline_revealed": true,
     "opposite_area_revealed": false,

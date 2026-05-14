@@ -522,6 +522,21 @@ function applyInitialMapRevealSettings(imrSettings) {
     processInitialMapRevealPreset();
 }
 
+function applyMapStationActivationSetting(msaSettings) {
+    applyRadioValue("mapStationActivationRevealSaves", msaSettings.save_stations);
+    applyRadioValue("mapStationActivationRefilsNo", msaSettings.refill_stations);
+    applyRadioValue("mapStationActivationRevealShip", msaSettings.ship);
+    applyRadioValue("mapStationActivationRevealObjectives", msaSettings.objectives);
+    applyRadioValue("mapStationActivationRevealTransitions", msaSettings.area_transitions);
+    applyRadioValue("mapStationActivationRevealTier1", msaSettings.items1);
+    applyRadioValue("mapStationActivationRevealTier2", msaSettings.items2);
+    applyRadioValue("mapStationActivationRevealTier3", msaSettings.items3);
+    applyRadioValue("mapStationActivationRevealTier4", msaSettings.items4);
+    applyRadioValue("mapStationActivationRevealOther", msaSettings.other);
+    applyRadioValue("mapStationActivationRevealPreset", msaSettings.preset);
+    processmapStationActivationPreset();
+}
+
 function applyEnhancedMapSettings(emSettings) {
     applyRadioValue("enhancedMapBlueDoors", emSettings.blue_doors);
     applyRadioValue("enhancedMapGrayDoors", emSettings.gray_doors);
@@ -552,6 +567,7 @@ function applyQolPreset(preset) {
     }
 
     applyInitialMapRevealSettings(preset.initial_map_reveal_settings);
+    applyMapStationActivationSetting(preset.map_station_activation_settings);
     applyEnhancedMapSettings(preset.enhanced_map_settings);
     applyRadioValue("itemMarkers", preset.item_markers);
     applyRadioValue("roomOutlineRevealed", preset.room_outline_revealed);
@@ -646,7 +662,6 @@ function applyFullSettingsPreset(preset) {
     applyRadioValue("wallJump", other.wall_jump);
     applyAreaAssignment(other.area_assignment);
     applyRadioValue("doorLocksSize", other.door_locks_size);
-    applyRadioValue("mapStationReveal", other.map_station_reveal);
     applyRadioValue("energyFreeShinesparks", other.energy_free_shinesparks);
     applyRadioValue("allEnemiesRespawn", other.all_enemies_respawn);
     applyRadioValue("disableSpikesuit", other.disable_spikesuit);
@@ -906,6 +921,42 @@ function crashFixesChanged() {
     document.getElementById("crashFixesPresetSilent").checked = false;
     document.getElementById("crashFixesPresetCrash").checked = false;
     qualityOfLifeSettingChanged();
+}
+
+function mapStationActivationPresetChanged() {
+    processmapStationActivationPreset();
+    qualityOfLifeSettingChanged();
+}
+
+function processmapStationActivationPreset() {
+    let tileTypes = [
+        "Saves",
+        "Refils",
+        "Ship",
+        "Objectives",
+        "Transitions",
+        "Tier1",
+        "Tier2",
+        "Tier3",
+        "Tier4"
+    ]
+    if (document.getElementById("mapStationActivationPresetPartial").checked) {
+        for (t of tileTypes) {
+            document.getElementById(`mapStationActivation${t}No`).checked = true;
+        }
+        document.getElementById("mapStationActivationOtherYes").checked = true;
+    } else if (document.getElementById("mapStationActivationPresetFull").checked) { 
+        for (t of tileTypes) {
+            document.getElementById(`mapStationActivation${t}Yes`).checked = true;
+        }
+        document.getElementById("mapStationActivationOtherYes").checked = true;
+    } 
+}
+
+function mapStationActivationSettingChanged() {
+    document.getElementById("mapStationActivationPresetPartial").checked = false;
+    document.getElementById("mapStationActivationPresetFull").checked = false;
+    mapStationActivationPresetChanged();
 }
 
 function processInitialMapRevealPreset() {
@@ -1346,7 +1397,6 @@ function checkOtherOptions() {
         document.getElementById("speedBoosterSplit").checked ||
         !document.getElementById("areaAssignmentPresetStandard").checked ||
         document.getElementById("doorLocksSizeSmall").checked ||
-        document.getElementById("mapStationRevealPartial").checked ||
         document.getElementById("raceModeYes").checked) 
     {
         document.getElementById("collapseGameVariations").classList.remove("collapse");
