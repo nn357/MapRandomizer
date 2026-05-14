@@ -186,10 +186,19 @@ impl SeedHeaderTemplate<'_> {
         if other_settings.wall_jump == WallJump::Collectible {
             game_variations.push("Collectible wall jump");
         }
-        if qol_settings.map_station_activation_settings.preset == Some(maprando::settings::MapStationActivationPreset::Partial) {
-            game_variations.push("Map stations give partial reveal");
-        }
+        match qol_settings.map_station_activation_settings.preset {
+            Some(maprando::settings::MapStationActivationPreset::Partial) => {
+                game_variations.push("Map stations give partial reveal");
+            }
 
+            Some(maprando::settings::MapStationActivationPreset::Full) => {
+                // push nothing (default mapstation behaviour)
+            }
+
+            None => {
+                game_variations.push("Map stations have custom reveal settings");
+            }
+        }
         if other_settings.energy_free_shinesparks {
             game_variations.push("Energy-free shinesparks");
         }
