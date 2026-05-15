@@ -538,7 +538,7 @@ function applyInitialMapRevealSettings(imrSettings) {
     processInitialMapRevealPreset();
 }
 
-function applyMapStationActivationSetting(msaSettings) {
+function applyMapStationActivationSettings(msaSettings) {
     applyRadioValue("mapStationActivationSaves", msaSettings.save_stations);
     applyRadioValue("mapStationActivationRefils", msaSettings.refill_stations);
     applyRadioValue("mapStationActivationShip", msaSettings.ship);
@@ -583,7 +583,7 @@ function applyQolPreset(preset) {
     }
 
     applyInitialMapRevealSettings(preset.initial_map_reveal_settings);
-    applyMapStationActivationSetting(preset.map_station_activation_settings);
+    applyMapStationActivationSettings(preset.map_station_activation_settings);
     applyEnhancedMapSettings(preset.enhanced_map_settings);
     applyRadioValue("itemMarkers", preset.item_markers);
     applyRadioValue("roomOutlineRevealed", preset.room_outline_revealed);
