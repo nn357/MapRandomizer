@@ -183,7 +183,6 @@ function buildInitialMapRevealSettings(formData) {
         "refill_stations": formData.get("initial_map_reveal_refills"),
         "ship": formData.get("initial_map_reveal_ship"),
         "objectives": formData.get("initial_map_reveal_objectives"),
-        "refill_stations": formData.get("initial_map_reveal_refills"),
         "area_transitions": formData.get("initial_map_reveal_area_transitions"),
         "items1": formData.get("initial_map_reveal_items1"),
         "items2": formData.get("initial_map_reveal_items2"),
@@ -191,6 +190,22 @@ function buildInitialMapRevealSettings(formData) {
         "items4": formData.get("initial_map_reveal_items4"),
         "other": formData.get("initial_map_reveal_other"),
         "all_areas": formData.get("initial_map_reveal_all_areas") == "true",
+    }
+}
+
+function buildMapStationActivationSettings(formData) {
+    return {
+        "preset": formData.get("map_station_reveal"),
+        "save_stations": formData.get("map_station_activation_saves"),
+        "refill_stations": formData.get("map_station_activation_refils"),
+        "ship": formData.get("map_station_activation_ship"),
+        "objectives": formData.get("map_station_activation_objectives"),
+        "area_transitions": formData.get("map_station_activation_transitions"),
+        "items1": formData.get("map_station_activation_tier1"),
+        "items2": formData.get("map_station_activation_tier2"),
+        "items3": formData.get("map_station_activation_tier3"),
+        "items4": formData.get("map_station_activation_tier4"),
+        "other": formData.get("map_station_activation_other"),
     }
 }
 
@@ -276,6 +291,7 @@ function buildSettingsObject() {
         "quality_of_life_settings": {
             "preset": formData.get("quality_of_life_preset"),
             "enhanced_map_settings": buildEnhancedMapSettings(formData),
+            "map_station_activation_settings": buildMapStationActivationSettings(formData),
             "initial_map_reveal_settings": buildInitialMapRevealSettings(formData),
             "item_markers": formData.get("item_markers"),
             "room_outline_revealed": formData.get("room_outline_revealed") == "true",
