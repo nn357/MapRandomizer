@@ -938,18 +938,17 @@ function processmapStationActivationPreset() {
         "Tier1",
         "Tier2",
         "Tier3",
-        "Tier4"
+        "Tier4",
+        "Other"
     ]
     if (document.getElementById("mapStationActivationPresetPartial").checked) {
         for (t of tileTypes) {
-            document.getElementById(`mapStationActivation${t}No`).checked = true;
+            document.getElementById(`mapStationActivation${t}Partial`).checked = true;
         }
-        document.getElementById("mapStationActivationOtherYes").checked = true;
     } else if (document.getElementById("mapStationActivationPresetFull").checked) { 
         for (t of tileTypes) {
-            document.getElementById(`mapStationActivation${t}Yes`).checked = true;
+            document.getElementById(`mapStationActivation${t}Full`).checked = true;
         }
-        document.getElementById("mapStationActivationOtherYes").checked = true;
     } 
 }
 

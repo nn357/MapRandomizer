@@ -417,19 +417,26 @@ pub struct InitialMapRevealSettings {
     pub all_areas: bool,
 }
 
- #[derive(Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq)]
+pub enum MapStationActivationLevel {
+    No,
+    Partial,
+    Full,
+}
+
+#[derive(Serialize, Deserialize, Clone, PartialEq)]
 pub struct MapStationActivationSettings {
     pub preset: Option<MapStationActivationPreset>,
-    pub save_stations: bool,
-    pub refill_stations: bool,
-    pub ship: bool,
-    pub objectives: bool,
-    pub area_transitions: bool,
-    pub items1: bool,
-    pub items2: bool,
-    pub items3: bool,
-    pub items4: bool,
-    pub other: bool,
+    pub save_stations: MapStationActivationLevel,
+    pub refill_stations: MapStationActivationLevel,
+    pub ship: MapStationActivationLevel,
+    pub objectives: MapStationActivationLevel,
+    pub area_transitions: MapStationActivationLevel,
+    pub items1: MapStationActivationLevel,
+    pub items2: MapStationActivationLevel,
+    pub items3: MapStationActivationLevel,
+    pub items4: MapStationActivationLevel,
+    pub other: MapStationActivationLevel,
 }
 
 #[derive(Clone, Copy, Serialize, Deserialize, Debug, PartialEq)]
@@ -856,7 +863,6 @@ pub enum ETankRefill {
     Full,
 }
 
-
 #[derive(Clone, Copy, Serialize, Deserialize, Debug, PartialEq)]
 pub enum SaveAnimals {
     No,
@@ -1201,17 +1207,16 @@ fn upgrade_map_station_activation_settings(settings: &mut serde_json::Value) -> 
 
     let msasettings = MapStationActivationSettings {
         preset: Some(MapStationActivationPreset::Full),
-        save_stations: true,
-        refill_stations: true,
-        ship: true,
-        objectives: true,
-        area_transitions: true,
-        items1: true,
-        items2: true,
-        items3: true,
-        items4: true,
-        other: true,
-
+        save_stations: MapStationActivationLevel::Full,
+        refill_stations: MapStationActivationLevel::Full,
+        ship: MapStationActivationLevel::Full,
+        objectives: MapStationActivationLevel::Full,
+        area_transitions: MapStationActivationLevel::Full,
+        items1: MapStationActivationLevel::Full,
+        items2: MapStationActivationLevel::Full,
+        items3: MapStationActivationLevel::Full,
+        items4: MapStationActivationLevel::Full,
+        other: MapStationActivationLevel::Full,
     };
 
     qol_settings.insert(
