@@ -523,17 +523,17 @@ function applyInitialMapRevealSettings(imrSettings) {
 }
 
 function applyMapStationActivationSetting(msaSettings) {
-    applyRadioValue("mapStationActivationRevealSaves", msaSettings.save_stations);
-    applyRadioValue("mapStationActivationRefilsNo", msaSettings.refill_stations);
-    applyRadioValue("mapStationActivationRevealShip", msaSettings.ship);
-    applyRadioValue("mapStationActivationRevealObjectives", msaSettings.objectives);
-    applyRadioValue("mapStationActivationRevealTransitions", msaSettings.area_transitions);
-    applyRadioValue("mapStationActivationRevealTier1", msaSettings.items1);
-    applyRadioValue("mapStationActivationRevealTier2", msaSettings.items2);
-    applyRadioValue("mapStationActivationRevealTier3", msaSettings.items3);
-    applyRadioValue("mapStationActivationRevealTier4", msaSettings.items4);
-    applyRadioValue("mapStationActivationRevealOther", msaSettings.other);
-    applyRadioValue("mapStationActivationRevealPreset", msaSettings.preset);
+    applyRadioValue("mapStationActivationSaves", msaSettings.save_stations);
+    applyRadioValue("mapStationActivationRefils", msaSettings.refill_stations);
+    applyRadioValue("mapStationActivationShip", msaSettings.ship);
+    applyRadioValue("mapStationActivationObjectives", msaSettings.objectives);
+    applyRadioValue("mapStationActivationTransitions", msaSettings.area_transitions);
+    applyRadioValue("mapStationActivationTier1", msaSettings.items1);
+    applyRadioValue("mapStationActivationTier2", msaSettings.items2);
+    applyRadioValue("mapStationActivationTier3", msaSettings.items3);
+    applyRadioValue("mapStationActivationTier4", msaSettings.items4);
+    applyRadioValue("mapStationActivationOther", msaSettings.other);
+    applyRadioValue("mapStationActivationPreset", msaSettings.preset);
     processmapStationActivationPreset();
 }
 
