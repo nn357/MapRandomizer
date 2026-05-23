@@ -5,8 +5,7 @@ use crate::{
     randomize::{LockedDoor, Randomization},
     settings::{
         DisableETankSetting, DoorLocksSize, EnhancedMapLevel, EnhancedMapOther, EnhancedMapWalls,
-        InitialMapRevealSettings, ItemMarkers, MapRevealLevel, MapStationActivationPreset,
-        Objective, RandomizerSettings,
+        InitialMapRevealSettings, ItemMarkers, MapRevealLevel, Objective, RandomizerSettings,
     },
 };
 use maprando_game::{
@@ -2604,29 +2603,6 @@ impl<'a> MapPatcher<'a> {
         Ok(())
     }
 
-    fn set_map_activation_behavior(&mut self) -> Result<()> {
-        match self
-            .settings
-            .quality_of_life_settings
-            .map_station_activation_settings
-            .preset
-        {
-            Some(MapStationActivationPreset::Partial) => {
-                self.rom.write_u16(snes2pc(0x90F700), 0xFFFF)?;
-            }
-
-            Some(MapStationActivationPreset::Full) => {
-                //
-            }
-
-            None => {
-                //
-            }
-        }
-
-        Ok(())
-    }
-
     fn sort_dynamic_tile_data(&mut self) -> Result<()> {
         let interior_priority = [
             MapTileInterior::Empty,
@@ -3245,7 +3221,6 @@ impl<'a> MapPatcher<'a> {
         }
         self.indicate_locked_doors()?;
         self.add_cross_area_arrows()?;
-        self.set_map_activation_behavior()?;
         self.indicate_items()?;
         self.compute_area_bounds()?;
         self.write_map_tiles()?;

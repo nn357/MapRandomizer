@@ -1,9 +1,9 @@
 arch snes.cpu
 lorom
 
-!map_station_reveal_type = $90F700  ; 0 = Full reveal,  1 = Partial reveal
+;!map_station_reveal_type = $90F700  ; 0 = Full reveal,  1 = Partial reveal
 !map_reveal_tile_table = $90FA00  ; must match reference in patch.rs
-!bank_90_freespace_start = $90F702
+!bank_90_freespace_start = $90F700
 !bank_90_freespace_end = $90F800
 
 
@@ -30,8 +30,8 @@ org $90AB6D
 org $90A98B
     jmp mark_progress
 
-org !map_station_reveal_type
-    dw $0000  ; default: full reveal
+;org !map_station_reveal_type
+;   dw $0000  ; default: full reveal
 
 org !bank_90_freespace_start
 mark_progress:

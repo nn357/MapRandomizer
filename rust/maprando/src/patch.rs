@@ -1277,8 +1277,8 @@ impl Patcher<'_> {
         }
 
         for (room_idx, room) in self.game_data.room_geometry.iter().enumerate() {
-            let room_x = self.rom.read_u8(room.rom_address + 2)? as isize;
-            let room_y = self.rom.read_u8(room.rom_address + 3)? as isize;
+            let room_x = self.rom.read_u8(room.rom_address + 2)?;
+            let room_y = self.rom.read_u8(room.rom_address + 3)?;
 
             let area = self.map.area[room_idx];
 
