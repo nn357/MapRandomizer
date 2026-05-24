@@ -1232,7 +1232,7 @@ fn upgrade_map_station_activation_settings(settings: &mut serde_json::Value) -> 
     };
 
     qol_settings.insert(
-        "initial_map_reveal_settings".to_string(),
+        "map_station_activation_settings".to_string(),
         serde_json::to_value(msasettings)?,
     );
 
