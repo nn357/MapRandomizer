@@ -19,7 +19,7 @@ use crate::{
     randomize::{LockedDoor, Randomization, get_starting_items},
     settings::{
         AreaAssignmentPreset, CrashFixes, CrashFixesPreset, DisableETankSetting, ETankRefill,
-        EnemyDrops, Fanfares, FixMode, ItemCount, MapPreset, MapStationActivationLevel, MotherBrainFight, ObjPreset,
+        EnemyDrops, Fanfares, FixMode, ItemCount, MapPreset, MotherBrainFight, ObjPreset,
         Objective, ObjectiveScreen, ProgressionPreset, QolPreset, RandomizerSettings, SaveAnimals,
         SkillPreset, SpeedBooster, StartLocationMode, WallJump,
     },
@@ -1231,120 +1231,6 @@ impl Patcher<'_> {
         Ok(())
     }
 
-    fn write_area_bitmask(&mut self) -> Result<()> {
-        let addr = 0x829727;
-
-        for (room_idx, room) in self.game_data.room_geometry.iter().enumerate() {
-            let room_x = self.rom.read_u8(room.rom_address + 2)?;
-            let room_y = self.rom.read_u8(room.rom_address + 3)?;
-            let area = self.map.area[room_idx];
-
-            for y in 0..room.map.len() {
-                for x in 0..room.map[y].len() {
-                    if (room.map[y][x] == 0 && room_idx != self.game_data.toilet_room_idx)
-                        || !self.map.room_mask[room_idx]
-                    {
-                        continue;
-                    }
-
-                    let (offset, bitmask) =
-                        xy_to_explored_bit_ptr(room_x + x as isize, room_y + y as isize);
-
-                    let bit_addr = addr + area * 0x100 + offset as usize;
-                    let mut curr = self.rom.read_u8(snes2pc(bit_addr))?;
-                    curr |= bitmask as isize;
-                    self.rom.write_u8(snes2pc(bit_addr), curr)?;
-                }
-            }
-        }
-
-        Ok(())
-    }
-
-    fn write_map_station_bitmasks(&mut self) -> Result<()> {
-        const FULL_MASK_ADDR: usize = 0x829727;
-        const PARTIAL_MASK_ADDR: usize = 0x89B200;
-
-        // clear any existing bytes
-        for area in 0..NUM_AREAS {
-            for i in 0..0x100 {
-                self.rom
-                    .write_u8(snes2pc(FULL_MASK_ADDR + area * 0x100 + i), 0)?;
-
-                self.rom
-                    .write_u8(snes2pc(PARTIAL_MASK_ADDR + area * 0x100 + i), 0)?;
-            }
-        }
-
-        for (room_idx, room) in self.game_data.room_geometry.iter().enumerate() {
-            let room_x = self.rom.read_u8(room.rom_address + 2)?;
-            let room_y = self.rom.read_u8(room.rom_address + 3)?;
-
-            let area = self.map.area[room_idx];
-
-            for y in 0..room.map.len() {
-                for x in 0..room.map[y].len() {
-                    // skip non-room tiles
-                    if (room.map[y][x] == 0 && room_idx != self.game_data.toilet_room_idx)
-                        || !self.map.room_mask[room_idx]
-                    {
-                        continue;
-                    }
-
-                    let (offset, bitmask) =
-                        xy_to_explored_bit_ptr(room_x + x as isize, room_y + y as isize);
-
-                    let full_addr = FULL_MASK_ADDR + area * 0x100 + offset as usize;
-
-                    let partial_addr = PARTIAL_MASK_ADDR + area * 0x100 + offset as usize;
-
-                    let reveal_level = self.determine_tile_reveal_level(room_idx, x, y);
-
-                    match reveal_level {
-                        MapStationActivationLevel::No => {}
-
-                        MapStationActivationLevel::Partial => {
-                            let mut curr = self.rom.read_u8(snes2pc(partial_addr))?;
-
-                            curr |= bitmask as isize;
-
-                            self.rom.write_u8(snes2pc(partial_addr), curr)?;
-                        }
-
-                        MapStationActivationLevel::Full => {
-                            // Set full reveal
-                            let mut full = self.rom.read_u8(snes2pc(full_addr))?;
-
-                            full |= bitmask as isize;
-
-                            self.rom.write_u8(snes2pc(full_addr), full)?;
-
-                            // Remove from partial mask if present
-                            let mut partial = self.rom.read_u8(snes2pc(partial_addr))?;
-
-                            partial &= !(bitmask as isize);
-
-                            self.rom.write_u8(snes2pc(partial_addr), partial)?;
-                        }
-                    }
-                }
-            }
-        }
-
-        Ok(())
-    }
-
-    fn determine_tile_reveal_level(
-    &self,
-    room_idx: usize,
-    x: usize,
-    y: usize,
-) -> MapStationActivationLevel {
-    let room = &self.game_data.room_geometry[room_idx];
-    let settings = &self.settings.quality_of_life_settings.map_station_activation_settings;
-
-    return settings.refill_stations 
-}
 
     fn fix_save_stations(&mut self) -> Result<()> {
         let save_station_ptrs = vec![
@@ -3818,8 +3704,6 @@ pub fn make_rom(
     patcher.apply_mother_brain_setup_asm()?;
     patcher.apply_extra_setup_asm()?;
     patcher.write_extra_room_data()?;
-    patcher.write_area_bitmask()?;
-    patcher.write_map_station_bitmasks()?;
 
     info!("CustomizeSettings: {customize_settings:?}");
     customize_rom(

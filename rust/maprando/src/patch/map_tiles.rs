@@ -5,7 +5,8 @@ use crate::{
     randomize::{LockedDoor, Randomization},
     settings::{
         DisableETankSetting, DoorLocksSize, EnhancedMapLevel, EnhancedMapOther, EnhancedMapWalls,
-        InitialMapRevealSettings, ItemMarkers, MapRevealLevel, Objective, RandomizerSettings,
+        InitialMapRevealSettings, ItemMarkers, MapRevealLevel, MapStationActivationLevel,
+        Objective, RandomizerSettings,
     },
 };
 use maprando_game::{
@@ -3154,6 +3155,187 @@ impl<'a> MapPatcher<'a> {
         Ok(())
     }
 
+    fn write_map_station_bitmasks(&mut self) -> Result<()> {
+        const FULL_MASK_ADDR: usize = 0x829727;
+        const PARTIAL_MASK_ADDR: usize = 0x89B200;
+
+        // Clear existing mask data
+        for area in 0..NUM_AREAS {
+            for i in 0..0x100 {
+                self.rom
+                    .write_u8(snes2pc(FULL_MASK_ADDR + area * 0x100 + i), 0)?;
+
+                self.rom
+                    .write_u8(snes2pc(PARTIAL_MASK_ADDR + area * 0x100 + i), 0)?;
+            }
+        }
+
+        for (room_idx, room) in self.game_data.room_geometry.iter().enumerate() {
+            for y in 0..room.map.len() {
+                for x in 0..room.map[y].len() {
+                    // Skip non-room tiles
+                    if (room.map[y][x] == 0 && room_idx != self.game_data.toilet_room_idx)
+                        || !self.map.room_mask[room_idx]
+                    {
+                        continue;
+                    }
+
+                    // IMPORTANT:
+                    // Use transformed/randomized coordinates
+                    // instead of raw ROM coordinates.
+                    let Some((area, map_x, map_y)) =
+                        self.get_room_coords(room.room_id, x as isize, y as isize)
+                    else {
+                        continue;
+                    };
+
+                    println!(
+                        "WRITE room={} ({}) area={} map_x={} map_y={}",
+                        room_idx, room.name, area, map_x, map_y
+                    );
+
+                    let (offset, bitmask) = xy_to_explored_bit_ptr(map_x, map_y);
+
+                    println!("offset={} bitmask={:#010b}", offset, bitmask);
+                    let full_addr = FULL_MASK_ADDR + area * 0x100 + offset as usize;
+
+                    let partial_addr = PARTIAL_MASK_ADDR + area * 0x100 + offset as usize;
+
+                    let reveal_level = self.determine_tile_reveal_level(room_idx, x, y);
+
+                    // DEBUG
+                    if reveal_level != MapStationActivationLevel::No {
+                        println!(
+                            "REVEAL room={} x={} y={} level={:?}",
+                            room_idx, x, y, reveal_level
+                        );
+                    }
+
+                    match reveal_level {
+                        MapStationActivationLevel::No => {}
+
+                        MapStationActivationLevel::Partial => {
+                            let mut curr = self.rom.read_u8(snes2pc(partial_addr))?;
+
+                            curr |= bitmask as isize;
+
+                            self.rom.write_u8(snes2pc(partial_addr), curr)?;
+                        }
+
+                        MapStationActivationLevel::Full => {
+                            // Set full reveal
+                            let mut full = self.rom.read_u8(snes2pc(full_addr))?;
+
+                            full |= bitmask as isize;
+
+                            self.rom.write_u8(snes2pc(full_addr), full)?;
+
+                            // Remove from partial mask if present
+                            let mut partial = self.rom.read_u8(snes2pc(partial_addr))?;
+
+                            partial &= !bitmask as isize;
+
+                            self.rom.write_u8(snes2pc(partial_addr), partial)?;
+                        }
+                    }
+                }
+            }
+        }
+
+        Ok(())
+    }
+
+    fn determine_tile_reveal_level(
+        &self,
+        room_idx: usize,
+        x: usize,
+        y: usize,
+    ) -> MapStationActivationLevel {
+        let settings = &self
+            .settings
+            .quality_of_life_settings
+            .map_station_activation_settings;
+
+        let room = &self.game_data.room_geometry[room_idx];
+
+        // IMPORTANT:
+        // Use the SAME coordinate conversion that map_tile_map used
+        // when inserting tiles.
+        let Some((area, map_x, map_y)) = self.get_room_coords(room.room_id, x as isize, y as isize)
+        else {
+            return MapStationActivationLevel::No;
+        };
+
+        let Some(tile) = self.map_tile_map.get(&(area, map_x, map_y)) else {
+            println!(
+                "FAILED LOOKUP room={} area={} x={} y={}",
+                room_idx, area, map_x, map_y
+            );
+
+            return MapStationActivationLevel::No;
+        };
+
+        // DEBUG: print all tile classifications
+        println!(
+            "room={} ({}) coords=({}, {}) interior={:?} special={:?}",
+            room_idx, room.name, map_x, map_y, tile.interior, tile.special_type,
+        );
+
+        // Area transition arrows/letters do not render correctly with partial reveal
+        if let Some(MapTileSpecialType::AreaTransition(_, _)) = tile.special_type {
+            let result = match settings.area_transitions {
+                MapStationActivationLevel::No => MapStationActivationLevel::No,
+
+                MapStationActivationLevel::Partial | MapStationActivationLevel::Full => {
+                    MapStationActivationLevel::Full
+                }
+            };
+
+            if result != MapStationActivationLevel::No {
+                println!(
+                    "REVEAL TRANSITION room={} coords=({}, {}) result={:?}",
+                    room_idx, map_x, map_y, result
+                );
+            }
+
+            return result;
+        }
+
+        let result = match tile.interior {
+            MapTileInterior::SaveStation => settings.save_stations,
+
+            MapTileInterior::EnergyRefill
+            | MapTileInterior::AmmoRefill
+            | MapTileInterior::DoubleRefill => settings.refill_stations,
+
+            MapTileInterior::Ship => settings.ship,
+
+            MapTileInterior::Objective => settings.objectives,
+
+            MapTileInterior::Item | MapTileInterior::DoubleItem | MapTileInterior::HiddenItem => {
+                settings.items1
+            }
+
+            MapTileInterior::AmmoItem => settings.items2,
+
+            MapTileInterior::MediumItem => settings.items3,
+
+            MapTileInterior::MajorItem => settings.items4,
+
+            _ => MapStationActivationLevel::No,
+        };
+
+        // DEBUG: print only tiles that actually reveal
+        if result != MapStationActivationLevel::No {
+            println!(
+                "REVEAL room={} coords=({}, {}) interior={:?} special={:?} result={:?}",
+                room_idx, map_x, map_y, tile.interior, tile.special_type, result
+            );
+        }
+
+        result
+    }
+
     pub fn compute_area_bounds(&mut self) -> Result<()> {
         for &(area_idx, x, y) in self.map_tile_map.keys() {
             if x < self.area_min_x[area_idx] {
@@ -3236,6 +3418,7 @@ impl<'a> MapPatcher<'a> {
         }
         self.fix_kraid()?;
         self.fix_item_colors()?;
+        self.write_map_station_bitmasks()?;
 
         Ok(())
     }
