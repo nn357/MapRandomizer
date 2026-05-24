@@ -1231,7 +1231,6 @@ impl Patcher<'_> {
         Ok(())
     }
 
-
     fn fix_save_stations(&mut self) -> Result<()> {
         let save_station_ptrs = vec![
             0x44C5, 0x44D3, 0x44E1, 0x45CF, 0x45DD, 0x45EB, 0x45F9, 0x4607, 0x46D9, 0x46E7, 0x46F5,

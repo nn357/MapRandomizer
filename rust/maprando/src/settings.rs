@@ -1208,7 +1208,7 @@ fn upgrade_map_station_activation_settings(settings: &mut serde_json::Value) -> 
     if settings["quality_of_life_settings"]
         .as_object()
         .unwrap()
-        .contains_key("initial_map_reveal_settings")
+        .contains_key("map_station_activation_settings")
     {
         return Ok(());
     }
