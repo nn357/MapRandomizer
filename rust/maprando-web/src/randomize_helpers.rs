@@ -11,8 +11,8 @@ use maprando::{
     seed_repository::{Seed, SeedFile},
     settings::{
         AreaAssignmentBaseOrder, AreaAssignmentPreset, CrashFixesPreset, DisableETankSetting,
-        DoorLocksSize, ETankRefill, FillerItemPriority, ItemCount, RandomizerSettings,
-        SpeedBooster, WallJump, get_objective_groups,
+        DoorLocksSize, ETankRefill, FillerItemPriority, ItemCount, MapStationActivationPreset,
+        RandomizerSettings, SpeedBooster, WallJump, get_objective_groups,
     },
     spoiler_log::SpoilerLog,
     spoiler_map,
@@ -157,6 +157,18 @@ impl SeedHeaderTemplate<'_> {
         }
     }
 
+    fn map_station_activation_preset(&self) -> &'static str {
+        match self
+            .settings
+            .quality_of_life_settings
+            .map_station_activation_settings
+            .preset
+        {
+            Some(MapStationActivationPreset::Partial) => "Partial",
+            Some(MapStationActivationPreset::Full) => "Full",
+            None => "Custom",
+        }
+    }
     fn game_variations(&self) -> Vec<&str> {
         let mut game_variations = vec![];
         let other_settings = &self.settings.other_settings;

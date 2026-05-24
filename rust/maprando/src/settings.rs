@@ -424,6 +424,12 @@ pub enum MapStationActivationLevel {
     Full,
 }
 
+impl std::fmt::Display for MapStationActivationLevel {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
 #[derive(Serialize, Deserialize, Clone, PartialEq)]
 pub struct MapStationActivationSettings {
     pub preset: Option<MapStationActivationPreset>,
@@ -443,6 +449,12 @@ pub struct MapStationActivationSettings {
 pub enum MapStationActivationPreset {
     Partial,
     Full,
+}
+
+impl std::fmt::Display for MapStationActivationPreset {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
 }
 
 #[derive(Serialize, Deserialize, Clone, PartialEq)]
