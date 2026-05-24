@@ -3230,6 +3230,24 @@ impl<'a> MapPatcher<'a> {
 
         Ok(())
     }
+    fn interior_to_reveal_level(&self, interior: MapTileInterior) -> MapStationActivationLevel {
+        let settings = &self
+            .settings
+            .quality_of_life_settings
+            .map_station_activation_settings;
+
+        match interior {
+            MapTileInterior::Item => settings.items1,
+
+            MapTileInterior::AmmoItem => settings.items2,
+
+            MapTileInterior::MediumItem => settings.items3,
+
+            MapTileInterior::MajorItem => settings.items4,
+
+            _ => settings.other,
+        }
+    }
 
     fn determine_tile_reveal_level(
         &self,
@@ -3275,6 +3293,26 @@ impl<'a> MapPatcher<'a> {
             MapTileInterior::Objective => settings.objectives,
 
             MapTileInterior::Item | MapTileInterior::DoubleItem | MapTileInterior::HiddenItem => {
+                for (i, &item) in self.randomization.item_placement.iter().enumerate() {
+                    let (item_room_id, node_id) = self.game_data.item_locations[i];
+
+                    if item_room_id != room.room_id {
+                        continue;
+                    }
+
+                    let item_ptr = self.game_data.node_ptr_map[&(item_room_id, node_id)];
+
+                    let Ok((item_x, item_y)) = find_item_xy(item_ptr, &room.items) else {
+                        continue;
+                    };
+
+                    if item_x == x as isize && item_y == y as isize {
+                        let interior = get_item_interior(item, self.settings);
+
+                        return self.interior_to_reveal_level(interior);
+                    }
+                }
+
                 settings.items1
             }
 
@@ -3287,7 +3325,6 @@ impl<'a> MapPatcher<'a> {
             _ => settings.other,
         }
     }
-
     pub fn compute_area_bounds(&mut self) -> Result<()> {
         for &(area_idx, x, y) in self.map_tile_map.keys() {
             if x < self.area_min_x[area_idx] {
