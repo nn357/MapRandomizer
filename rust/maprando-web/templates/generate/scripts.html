@@ -197,7 +197,7 @@ function buildMapStationActivationSettings(formData) {
     return {
         "preset": formData.get("map_station_reveal"),
         "save_stations": formData.get("map_station_activation_saves"),
-        "refill_stations": formData.get("map_station_activation_refils"),
+        "refill_stations": formData.get("map_station_activation_refills"),
         "ship": formData.get("map_station_activation_ship"),
         "objectives": formData.get("map_station_activation_objectives"),
         "area_transitions": formData.get("map_station_activation_transitions"),
@@ -540,7 +540,7 @@ function applyInitialMapRevealSettings(imrSettings) {
 
 function applyMapStationActivationSettings(msaSettings) {
     applyRadioValue("mapStationActivationSaves", msaSettings.save_stations);
-    applyRadioValue("mapStationActivationRefils", msaSettings.refill_stations);
+    applyRadioValue("mapStationActivationRefills", msaSettings.refill_stations);
     applyRadioValue("mapStationActivationShip", msaSettings.ship);
     applyRadioValue("mapStationActivationObjectives", msaSettings.objectives);
     applyRadioValue("mapStationActivationTransitions", msaSettings.area_transitions);
@@ -947,7 +947,7 @@ function mapStationActivationPresetChanged() {
 function processMapStationActivationPreset() {
     let tileTypes = [
         "Saves",
-        "Refils",
+        "Refills",
         "Ship",
         "Objectives",
         "Transitions",

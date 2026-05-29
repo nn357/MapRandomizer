@@ -1217,7 +1217,7 @@ fn upgrade_map_station_activation_settings(settings: &mut serde_json::Value) -> 
         .as_object_mut()
         .context("missing 'quality_of_life_settings'")?;
 
-    let msasettings = MapStationActivationSettings {
+    let msa_settings = MapStationActivationSettings {
         preset: Some(MapStationActivationPreset::Full),
         save_stations: MapStationActivationLevel::Full,
         refill_stations: MapStationActivationLevel::Full,
@@ -1233,7 +1233,7 @@ fn upgrade_map_station_activation_settings(settings: &mut serde_json::Value) -> 
 
     qol_settings.insert(
         "map_station_activation_settings".to_string(),
-        serde_json::to_value(msasettings)?,
+        serde_json::to_value(msa_settings)?,
     );
 
     Ok(())
