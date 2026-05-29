@@ -172,7 +172,6 @@ impl SeedHeaderTemplate<'_> {
     fn game_variations(&self) -> Vec<&str> {
         let mut game_variations = vec![];
         let other_settings = &self.settings.other_settings;
-        let qol_settings = &self.settings.quality_of_life_settings;
         if other_settings.area_assignment.preset != Some(AreaAssignmentPreset::Standard) {
             match other_settings.area_assignment.base_order {
                 AreaAssignmentBaseOrder::Size => {
@@ -197,19 +196,6 @@ impl SeedHeaderTemplate<'_> {
         }
         if other_settings.wall_jump == WallJump::Collectible {
             game_variations.push("Collectible wall jump");
-        }
-        match qol_settings.map_station_activation_settings.preset {
-            Some(maprando::settings::MapStationActivationPreset::Partial) => {
-                game_variations.push("Map stations give partial reveal");
-            }
-
-            Some(maprando::settings::MapStationActivationPreset::Full) => {
-                // push nothing (default mapstation behaviour)
-            }
-
-            None => {
-                game_variations.push("Map stations have custom reveal settings");
-            }
         }
         if other_settings.energy_free_shinesparks {
             game_variations.push("Energy-free shinesparks");

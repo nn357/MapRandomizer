@@ -550,7 +550,7 @@ function applyMapStationActivationSettings(msaSettings) {
     applyRadioValue("mapStationActivationTier4", msaSettings.items4);
     applyRadioValue("mapStationActivationOther", msaSettings.other);
     applyRadioValue("mapStationActivationPreset", msaSettings.preset);
-    processmapStationActivationPreset();
+    processMapStationActivationPreset();
 }
 
 function applyEnhancedMapSettings(emSettings) {
@@ -940,11 +940,11 @@ function crashFixesChanged() {
 }
 
 function mapStationActivationPresetChanged() {
-    processmapStationActivationPreset();
+    processMapStationActivationPreset();
     qualityOfLifeSettingChanged();
 }
 
-function processmapStationActivationPreset() {
+function processMapStationActivationPreset() {
     let tileTypes = [
         "Saves",
         "Refils",
