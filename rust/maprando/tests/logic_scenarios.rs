@@ -255,6 +255,7 @@ fn get_settings(scenario: &Scenario) -> Result<RandomizerSettings> {
                 items3: maprando::settings::MapStationActivationLevel::Full,
                 items4: maprando::settings::MapStationActivationLevel::Full,
                 other: maprando::settings::MapStationActivationLevel::Full,
+                sub_area: maprando::settings::MapStationActivationLevel::No,
             },
             item_markers: maprando::settings::ItemMarkers::Simple,
             room_outline_revealed: false,

@@ -206,6 +206,7 @@ function buildMapStationActivationSettings(formData) {
         "items3": formData.get("map_station_activation_tier3"),
         "items4": formData.get("map_station_activation_tier4"),
         "other": formData.get("map_station_activation_other"),
+        "sub_area": formData.get("map_station_activation_sub_area"),
     }
 }
 
@@ -549,6 +550,7 @@ function applyMapStationActivationSettings(msaSettings) {
     applyRadioValue("mapStationActivationTier3", msaSettings.items3);
     applyRadioValue("mapStationActivationTier4", msaSettings.items4);
     applyRadioValue("mapStationActivationOther", msaSettings.other);
+    applyRadioValue("mapStationActivationSubArea", msaSettings.sub_area);
     applyRadioValue("mapStationActivationPreset", msaSettings.preset);
     processMapStationActivationPreset();
 }
@@ -961,10 +963,12 @@ function processMapStationActivationPreset() {
         for (t of tileTypes) {
             document.getElementById(`mapStationActivation${t}Partial`).checked = true;
         }
+        document.getElementById("mapStationActivationSubAreaNo").checked = true;
     } else if (document.getElementById("mapStationActivationPresetFull").checked) { 
         for (t of tileTypes) {
             document.getElementById(`mapStationActivation${t}Full`).checked = true;
         }
+        document.getElementById("mapStationActivationSubAreaNo").checked = true;
     } 
 }
 

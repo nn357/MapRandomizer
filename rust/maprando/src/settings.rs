@@ -443,6 +443,7 @@ pub struct MapStationActivationSettings {
     pub items3: MapStationActivationLevel,
     pub items4: MapStationActivationLevel,
     pub other: MapStationActivationLevel,
+    pub sub_area: MapStationActivationLevel,
 }
 
 #[derive(Clone, Copy, Serialize, Deserialize, Debug, PartialEq)]
@@ -1229,6 +1230,7 @@ fn upgrade_map_station_activation_settings(settings: &mut serde_json::Value) -> 
         items3: MapStationActivationLevel::Full,
         items4: MapStationActivationLevel::Full,
         other: MapStationActivationLevel::Full,
+        sub_area: MapStationActivationLevel::No,
     };
 
     qol_settings.insert(

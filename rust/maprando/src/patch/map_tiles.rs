@@ -3158,6 +3158,34 @@ impl<'a> MapPatcher<'a> {
     fn write_map_station_bitmasks(&mut self) -> Result<()> {
         const FULL_MASK_ADDR: usize = 0x829727;
         const PARTIAL_MASK_ADDR: usize = 0x89B200;
+        let mut map_station_subareas = [None; NUM_AREAS];
+        let settings = &self
+            .settings
+            .quality_of_life_settings
+            .map_station_activation_settings;
+
+        for (room_idx, room) in self.game_data.room_geometry.iter().enumerate() {
+            let area = self.map.area[room_idx];
+            let subarea = self.map.subarea[room_idx];
+
+            for y in 0..room.map.len() {
+                for x in 0..room.map[y].len() {
+                    let Some((tile_area, map_x, map_y)) =
+                        self.get_room_coords(room.room_id, x as isize, y as isize)
+                    else {
+                        continue;
+                    };
+
+                    let Some(tile) = self.map_tile_map.get(&(tile_area, map_x, map_y)) else {
+                        continue;
+                    };
+
+                    if tile.interior == MapTileInterior::MapStation {
+                        map_station_subareas[area] = Some(subarea);
+                    }
+                }
+            }
+        }
 
         for area in 0..NUM_AREAS {
             for i in 0..0x100 {
@@ -3190,7 +3218,16 @@ impl<'a> MapPatcher<'a> {
                         continue;
                     };
 
-                    let reveal_level = self.get_map_station_reveal(tile, room, x, y);
+                    let mut reveal_level = self.get_map_station_reveal(tile, room, x, y);
+
+                    let tile_subarea = self.map.subarea[room_idx];
+
+                    if let Some(map_station_subarea) = map_station_subareas[area]
+                        && tile_subarea != map_station_subarea
+                        && settings.sub_area != MapStationActivationLevel::No
+                    {
+                        reveal_level = settings.sub_area;
+                    }
 
                     let local_x = room_x + x as isize;
                     let local_y = room_y + y as isize;
