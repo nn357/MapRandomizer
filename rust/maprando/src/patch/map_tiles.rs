@@ -12,7 +12,7 @@ use crate::{
 use maprando_game::{
     AreaIdx, BeamType, Direction, DoorLockType, DoorType, GameData, Item, ItemIdx, Map,
     MapLiquidType, MapTile, MapTileEdge, MapTileFade, MapTileInterior, MapTileSpecialType,
-    RoomGeometry, RoomGeometryDoor, RoomGeometryItem, RoomId, RoomPtr, util::sorted_hashmap_iter,
+    RoomGeometryDoor, RoomGeometryItem, RoomId, RoomPtr, util::sorted_hashmap_iter,
 };
 
 use super::{Rom, snes2pc, xy_to_explored_bit_ptr, xy_to_map_offset};
@@ -3163,11 +3163,9 @@ impl<'a> MapPatcher<'a> {
             .settings
             .quality_of_life_settings
             .map_station_activation_settings;
-
         for (room_idx, room) in self.game_data.room_geometry.iter().enumerate() {
             let area = self.map.area[room_idx];
             let subarea = self.map.subarea[room_idx];
-
             for y in 0..room.map.len() {
                 for x in 0..room.map[y].len() {
                     let Some((tile_area, map_x, map_y)) =
@@ -3175,18 +3173,15 @@ impl<'a> MapPatcher<'a> {
                     else {
                         continue;
                     };
-
                     let Some(tile) = self.map_tile_map.get(&(tile_area, map_x, map_y)) else {
                         continue;
                     };
-
                     if tile.interior == MapTileInterior::MapStation {
                         map_station_subareas[area] = Some(subarea);
                     }
                 }
             }
         }
-
         for area in 0..NUM_AREAS {
             for i in 0..0x100 {
                 self.rom
@@ -3195,11 +3190,9 @@ impl<'a> MapPatcher<'a> {
                     .write_u8(snes2pc(PARTIAL_MASK_ADDR + area * 0x100 + i), 0)?;
             }
         }
-
         for (room_idx, room) in self.game_data.room_geometry.iter().enumerate() {
             let room_x = self.rom.read_u8(room.rom_address + 2)?;
             let room_y = self.rom.read_u8(room.rom_address + 3)?;
-
             for y in 0..room.map.len() {
                 for x in 0..room.map[y].len() {
                     if (room.map[y][x] == 0 && room_idx != self.game_data.toilet_room_idx)
@@ -3207,81 +3200,54 @@ impl<'a> MapPatcher<'a> {
                     {
                         continue;
                     }
-
                     let Some((area, map_x, map_y)) =
                         self.get_room_coords(room.room_id, x as isize, y as isize)
                     else {
                         continue;
                     };
-
                     let Some(tile) = self.map_tile_map.get(&(area, map_x, map_y)) else {
                         continue;
                     };
-
-                    let mut reveal_level = self.get_map_station_reveal(tile, room, x, y);
-
+                    let mut reveal_level = self.get_map_station_reveal(tile);
                     let tile_subarea = self.map.subarea[room_idx];
-
                     if let Some(map_station_subarea) = map_station_subareas[area]
                         && tile_subarea != map_station_subarea
                         && settings.sub_area != MapStationActivationLevel::No
                     {
                         reveal_level = settings.sub_area;
                     }
-
                     let local_x = room_x + x as isize;
                     let local_y = room_y + y as isize;
-
                     let (offset, bitmask) = xy_to_explored_bit_ptr(local_x, local_y);
-
                     let full_addr = FULL_MASK_ADDR + area * 0x100 + offset as usize;
-
                     let partial_addr = PARTIAL_MASK_ADDR + area * 0x100 + offset as usize;
-
                     match reveal_level {
                         MapStationActivationLevel::No => {}
-
                         MapStationActivationLevel::Partial => {
                             let mut partial = self.rom.read_u8(snes2pc(partial_addr))?;
-
                             partial |= bitmask as isize;
-
                             self.rom.write_u8(snes2pc(partial_addr), partial)?;
                         }
-
                         MapStationActivationLevel::Full => {
                             let mut full = self.rom.read_u8(snes2pc(full_addr))?;
-
                             full |= bitmask as isize;
-
                             self.rom.write_u8(snes2pc(full_addr), full)?;
-
                             let mut partial = self.rom.read_u8(snes2pc(partial_addr))?;
-
                             partial |= bitmask as isize;
-
                             self.rom.write_u8(snes2pc(partial_addr), partial)?;
                         }
                     }
                 }
             }
         }
-
         Ok(())
     }
 
-    fn get_map_station_reveal(
-        &self,
-        tile: &MapTile,
-        room: &RoomGeometry,
-        x: usize,
-        y: usize,
-    ) -> MapStationActivationLevel {
+    fn get_map_station_reveal(&self, tile: &MapTile) -> MapStationActivationLevel {
         let settings = &self
             .settings
             .quality_of_life_settings
             .map_station_activation_settings;
-
         if let Some(MapTileSpecialType::AreaTransition(_, _)) = tile.special_type {
             return if settings.area_transitions == MapStationActivationLevel::No {
                 MapStationActivationLevel::No
@@ -3289,59 +3255,19 @@ impl<'a> MapPatcher<'a> {
                 MapStationActivationLevel::Full
             };
         }
-
-        let interior = match tile.interior {
-            MapTileInterior::Item | MapTileInterior::DoubleItem | MapTileInterior::HiddenItem => {
-                for (i, &item) in self.randomization.item_placement.iter().enumerate() {
-                    let (item_room_id, node_id) = self.game_data.item_locations[i];
-
-                    if item_room_id != room.room_id {
-                        continue;
-                    }
-
-                    let item_ptr = self.game_data.node_ptr_map[&(item_room_id, node_id)];
-
-                    let Ok((item_x, item_y)) = find_item_xy(item_ptr, &room.items) else {
-                        continue;
-                    };
-
-                    if item_x == x as isize && item_y == y as isize {
-                        return match get_item_interior(item, self.settings) {
-                            MapTileInterior::AmmoItem => settings.items2,
-                            MapTileInterior::MediumItem => settings.items3,
-                            MapTileInterior::MajorItem => settings.items4,
-                            _ => settings.items1,
-                        };
-                    }
-                }
-
-                tile.interior
-            }
-
-            _ => tile.interior,
-        };
-
-        match interior {
+        match tile.interior {
             MapTileInterior::SaveStation => settings.save_stations,
-
             MapTileInterior::EnergyRefill
             | MapTileInterior::AmmoRefill
             | MapTileInterior::DoubleRefill => settings.refill_stations,
-
             MapTileInterior::Ship => settings.ship,
-
             MapTileInterior::Objective => settings.objectives,
-
             MapTileInterior::Item | MapTileInterior::DoubleItem | MapTileInterior::HiddenItem => {
                 settings.items1
             }
-
             MapTileInterior::AmmoItem => settings.items2,
-
             MapTileInterior::MediumItem => settings.items3,
-
             MapTileInterior::MajorItem => settings.items4,
-
             _ => settings.other,
         }
     }
