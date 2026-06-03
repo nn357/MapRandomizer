@@ -963,12 +963,12 @@ function processMapStationActivationPreset() {
         for (t of tileTypes) {
             document.getElementById(`mapStationActivation${t}Partial`).checked = true;
         }
-        document.getElementById("mapStationActivationSubAreaNo").checked = true;
+        document.getElementById("mapStationActivationSubAreaSame").checked = true;
     } else if (document.getElementById("mapStationActivationPresetFull").checked) { 
         for (t of tileTypes) {
             document.getElementById(`mapStationActivation${t}Full`).checked = true;
         }
-        document.getElementById("mapStationActivationSubAreaNo").checked = true;
+        document.getElementById("mapStationActivationSubAreaSame").checked = true;
     } 
 }
 

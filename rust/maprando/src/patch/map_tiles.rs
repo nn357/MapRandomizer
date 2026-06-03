@@ -6,7 +6,7 @@ use crate::{
     settings::{
         DisableETankSetting, DoorLocksSize, EnhancedMapLevel, EnhancedMapOther, EnhancedMapWalls,
         InitialMapRevealSettings, ItemMarkers, MapRevealLevel, MapStationActivationLevel,
-        Objective, RandomizerSettings,
+        MapStationActivationSubArea, Objective, RandomizerSettings,
     },
 };
 use maprando_game::{
@@ -3212,9 +3212,15 @@ impl<'a> MapPatcher<'a> {
                     let tile_subarea = self.map.subarea[room_idx];
                     if let Some(map_station_subarea) = map_station_subareas[area]
                         && tile_subarea != map_station_subarea
-                        && settings.sub_area != MapStationActivationLevel::No
+                        && settings.sub_area != MapStationActivationSubArea::Same
                     {
-                        reveal_level = settings.sub_area;
+                        reveal_level = match settings.sub_area {
+                            MapStationActivationSubArea::Partial => {
+                                MapStationActivationLevel::Partial
+                            }
+                            MapStationActivationSubArea::No => MapStationActivationLevel::No,
+                            MapStationActivationSubArea::Same => unreachable!(),
+                        };
                     }
                     let local_x = room_x + x as isize;
                     let local_y = room_y + y as isize;

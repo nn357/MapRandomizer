@@ -430,6 +430,19 @@ impl std::fmt::Display for MapStationActivationLevel {
     }
 }
 
+#[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq)]
+pub enum MapStationActivationSubArea {
+    No,
+    Partial,
+    Same,
+}
+
+impl std::fmt::Display for MapStationActivationSubArea {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
 #[derive(Serialize, Deserialize, Clone, PartialEq)]
 pub struct MapStationActivationSettings {
     pub preset: Option<MapStationActivationPreset>,
@@ -443,7 +456,7 @@ pub struct MapStationActivationSettings {
     pub items3: MapStationActivationLevel,
     pub items4: MapStationActivationLevel,
     pub other: MapStationActivationLevel,
-    pub sub_area: MapStationActivationLevel,
+    pub sub_area: MapStationActivationSubArea,
 }
 
 #[derive(Clone, Copy, Serialize, Deserialize, Debug, PartialEq)]
@@ -1206,37 +1219,38 @@ fn upgrade_enhanced_map_settings(settings: &mut serde_json::Value) -> Result<()>
 
 fn upgrade_map_station_activation_settings(settings: &mut serde_json::Value) -> Result<()> {
     // Skip if already present
-    if settings["quality_of_life_settings"]
-        .as_object()
-        .unwrap()
-        .contains_key("map_station_activation_settings")
-    {
-        return Ok(());
-    }
-
     let qol_settings = settings["quality_of_life_settings"]
         .as_object_mut()
         .context("missing 'quality_of_life_settings'")?;
 
-    let msa_settings = MapStationActivationSettings {
-        preset: Some(MapStationActivationPreset::Full),
-        save_stations: MapStationActivationLevel::Full,
-        refill_stations: MapStationActivationLevel::Full,
-        ship: MapStationActivationLevel::Full,
-        objectives: MapStationActivationLevel::Full,
-        area_transitions: MapStationActivationLevel::Full,
-        items1: MapStationActivationLevel::Full,
-        items2: MapStationActivationLevel::Full,
-        items3: MapStationActivationLevel::Full,
-        items4: MapStationActivationLevel::Full,
-        other: MapStationActivationLevel::Full,
-        sub_area: MapStationActivationLevel::No,
-    };
+    if !qol_settings.contains_key("map_station_activation_settings") {
+        let msa_settings = MapStationActivationSettings {
+            preset: Some(MapStationActivationPreset::Full),
+            save_stations: MapStationActivationLevel::Full,
+            refill_stations: MapStationActivationLevel::Full,
+            ship: MapStationActivationLevel::Full,
+            objectives: MapStationActivationLevel::Full,
+            area_transitions: MapStationActivationLevel::Full,
+            items1: MapStationActivationLevel::Full,
+            items2: MapStationActivationLevel::Full,
+            items3: MapStationActivationLevel::Full,
+            items4: MapStationActivationLevel::Full,
+            other: MapStationActivationLevel::Full,
+            sub_area: MapStationActivationSubArea::Same,
+        };
 
-    qol_settings.insert(
-        "map_station_activation_settings".to_string(),
-        serde_json::to_value(msa_settings)?,
-    );
+        qol_settings.insert(
+            "map_station_activation_settings".to_string(),
+            serde_json::to_value(msa_settings)?,
+        );
+    }
+
+    let msa_settings = qol_settings["map_station_activation_settings"]
+        .as_object_mut()
+        .context("map_station_activation_settings is not object")?;
+    if !msa_settings.contains_key("sub_area") {
+        msa_settings.insert("sub_area".to_string(), "Same".into());
+    }
 
     Ok(())
 }
