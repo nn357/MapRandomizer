@@ -1,7 +1,7 @@
 arch snes.cpu
 lorom
 
-!map_reveal_tile_table = $90FA00  ; must match reference in patch.rs
+!map_reveal_tile_table = $90FA00  ; must match reference in patch.rs (fn write_map_reveal_tiles)
 !bank_90_freespace_start = $90F700
 !bank_90_freespace_end = $90F800
 
@@ -28,9 +28,6 @@ org $90AB6D
 ; This will also check if mini-map is disabled, and if so, skip the rest of the mini-map drawing routine.
 org $90A98B
     jmp mark_progress
-
-;org !map_station_reveal_type
-;   dw $0000  ; default: full reveal
 
 org !bank_90_freespace_start
 mark_progress:
@@ -110,6 +107,7 @@ activate_map_station_hook:
 
 .loop:
     lda $829727, x
+    ora $702000, x
     sta $702000, x ; maptiles bitmask
     lda $89b200, x
     ora $702700, x ; don't clear any bits already marked explored as it can break scrolling with sub area reveal set to off.
