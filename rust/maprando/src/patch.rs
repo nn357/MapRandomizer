@@ -2365,6 +2365,66 @@ impl Patcher<'_> {
         Ok(())
     }
 
+    fn write_map_warp_table(&mut self) -> Result<()> {
+        const MAP_WARP_TABLE_ADDR: usize = 0x89B800; 
+        // +00 room_ptr +02 entrance_ptr +04 screen_x +06 screen_y +08 samus_y +0A samus_x * 6 areas.
+        let map_room_ids = [15, 48, 87, 157, 203, 225];
+        println!("Building map warp table...");
+        for (room_idx, room) in self.game_data.room_geometry.iter().enumerate() {
+            if !map_room_ids.contains(&room.room_id) {
+                continue;
+            }
+            let area = self.map.area[room_idx];
+            let Some(loc) = self
+                .game_data
+                .start_locations
+                .iter()
+                .find(|x| x.room_id == room.room_id)
+            else {
+                println!(
+                    "ERROR: No start location found for room_id={}",
+                    room.room_id
+                );
+                continue;
+            };
+
+            let room_ptr = self.game_data.room_ptr_by_id[&loc.room_id] as u16;
+            let door_node_id = loc.door_load_node_id.unwrap_or(loc.node_id);
+            let (_, entrance_ptr) =
+                self.game_data.reverse_door_ptr_pair_map[&(loc.room_id, door_node_id)];
+            let entrance_ptr = entrance_ptr.unwrap() as u16;
+            let x_pixels = (loc.x * 16.0) as isize;
+            let y_pixels = (loc.y * 16.0) as isize - 24;
+            let screen_x = x_pixels & 0xFF00;
+            let screen_y = y_pixels & 0xFF00;
+            let samus_x = x_pixels - (screen_x + 0x80);
+            let samus_y = y_pixels - screen_y;
+            let addr = snes2pc(MAP_WARP_TABLE_ADDR + area * 12);
+
+            self.rom.write_u16(addr, room_ptr as isize)?;
+            self.rom.write_u16(addr + 2, entrance_ptr as isize)?;
+            self.rom.write_u16(addr + 4, screen_x)?;
+            self.rom.write_u16(addr + 6, screen_y)?;
+            self.rom
+                .write_u16(addr + 8, ((samus_y as i16) as u16) as isize)?;
+            self.rom
+                .write_u16(addr + 10, ((samus_x as i16) as u16) as isize)?;
+
+            println!(
+                "{} (Area {}) -> {} (room_id={}) room_ptr=${:04X} entrance_ptr=${:04X} table=${:06X}",
+                self.game_data.area_names[area],
+                area,
+                loc.name,
+                loc.room_id,
+                room_ptr,
+                entrance_ptr,
+                MAP_WARP_TABLE_ADDR + area * 12,
+            );
+        }
+
+        Ok(())
+    }
+
     fn apply_door_hazard_marker(&mut self, door_ptr_pair: DoorPtrPair) -> Result<()> {
         let Some(&(mut other_door_ptr_pair)) = self.other_door_ptr_pair_map.get(&door_ptr_pair)
         else {
@@ -3664,6 +3724,7 @@ pub fn make_rom(
     patcher.write_room_name_font()?;
     patcher.write_room_name_data()?;
     patcher.remove_non_blue_doors()?;
+    patcher.write_map_warp_table()?;
     patcher.write_crash_handler(&patcher.settings.quality_of_life_settings.crash_fixes)?;
     override_music(patcher.rom)?;
     if randomizer_settings.map_layout != "Vanilla"

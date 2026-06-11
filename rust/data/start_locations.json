@@ -2486,5 +2486,12 @@
         "node_id": 1,
         "x": 3.5,
         "y": 10
+    },
+    {
+        "name": "Maridia Map Room",
+        "room_id": 203,
+        "node_id": 1,
+        "x": 3.5,
+        "y": 10
     }
 ]
