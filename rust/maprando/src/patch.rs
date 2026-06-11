@@ -2366,8 +2366,15 @@ impl Patcher<'_> {
     }
 
     fn write_map_warp_table(&mut self) -> Result<()> {
-        const MAP_WARP_TABLE_ADDR: usize = 0x89B800; 
-        // +00 room_ptr +02 entrance_ptr +04 screen_x +06 screen_y +08 samus_y +0A samus_x * 6 areas.
+        const MAP_WARP_TABLE_ADDR: usize = 0x89B800;
+        // +00 room_ptr
+        // +02 entrance_ptr
+        // +04 BTS (always 0000)
+        // +06 screen_x
+        // +08 screen_y
+        // +0A samus_y
+        // +0C samus_x
+        // * 6 areas (14 bytes per entry)
         let map_room_ids = [15, 48, 87, 157, 203, 225];
         println!("Building map warp table...");
         for (room_idx, room) in self.game_data.room_geometry.iter().enumerate() {
@@ -2399,26 +2406,27 @@ impl Patcher<'_> {
             let screen_y = y_pixels & 0xFF00;
             let samus_x = x_pixels - (screen_x + 0x80);
             let samus_y = y_pixels - screen_y;
-            let addr = snes2pc(MAP_WARP_TABLE_ADDR + area * 12);
+            let addr = snes2pc(MAP_WARP_TABLE_ADDR + area * 14);
 
             self.rom.write_u16(addr, room_ptr as isize)?;
             self.rom.write_u16(addr + 2, entrance_ptr as isize)?;
-            self.rom.write_u16(addr + 4, screen_x)?;
-            self.rom.write_u16(addr + 6, screen_y)?;
+            self.rom.write_u16(addr + 4, 0)?;
+            self.rom.write_u16(addr + 6, screen_x)?;
+            self.rom.write_u16(addr + 8, screen_y)?;
             self.rom
-                .write_u16(addr + 8, ((samus_y as i16) as u16) as isize)?;
+                .write_u16(addr + 10, ((samus_y as i16) as u16) as isize)?;
             self.rom
-                .write_u16(addr + 10, ((samus_x as i16) as u16) as isize)?;
+                .write_u16(addr + 12, ((samus_x as i16) as u16) as isize)?;
 
             println!(
-                "{} (Area {}) -> {} (room_id={}) room_ptr=${:04X} entrance_ptr=${:04X} table=${:06X}",
+                "{} (Area {}) -> {} (room_id={}) room_ptr=${:04X} entrance_ptr=${:04X} BTS=0000 table=${:06X}",
                 self.game_data.area_names[area],
                 area,
                 loc.name,
                 loc.room_id,
                 room_ptr,
                 entrance_ptr,
-                MAP_WARP_TABLE_ADDR + area * 12,
+                MAP_WARP_TABLE_ADDR + area * 14,
             );
         }
 
