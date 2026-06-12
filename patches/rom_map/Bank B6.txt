@@ -1,4 +1,4 @@
-F660 - FBFF: [FREE]
+F660 - FBFF: fast_travel.asm {referenced in patch.rs fn write_map_warp_table}
 FE00 - FE5F: [FREE]
 FE60 - FE7F: ; disableable_etanks.asm
 FE80 - FFFF: ; map_area.asm

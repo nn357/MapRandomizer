@@ -485,6 +485,7 @@ impl Patcher<'_> {
             "fix_horiz_doors",          // this too?
             "fix_dust_torizo",
             "fix_choot",
+            "fast_travel",
         ];
 
         patches.push("new_game");
@@ -2366,7 +2367,7 @@ impl Patcher<'_> {
     }
 
     fn write_map_warp_table(&mut self) -> Result<()> {
-        const MAP_WARP_TABLE_ADDR: usize = 0x89B800;
+        const MAP_WARP_TABLE_ADDR: usize = 0xB6F660;
         // +00 room_ptr
         // +02 entrance_ptr
         // +04 BTS (always 0000)
