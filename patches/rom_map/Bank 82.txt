@@ -1,3 +1,5 @@
+E675 - E6A1: ; [mosaic] area_palettes.asm
+F419 - F42C: ; fast_travel.asm
 F70F - F808: ; map_area.asm
 F810 - F827: ; crash_handle_springball.asm
 F830 - F9DE: ; disableable_etanks.asm

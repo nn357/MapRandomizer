@@ -2342,8 +2342,33 @@ impl Patcher<'_> {
         let loc = self.randomization.start_location.clone();
         let room_addr = self.game_data.room_ptr_by_id[&loc.room_id];
         let door_node_id = loc.door_load_node_id.unwrap_or(loc.node_id);
+        println!(
+            "room_id={} node_id={} door_load_node_id={:?} using={}",
+            loc.room_id, loc.node_id, loc.door_load_node_id, door_node_id,
+        );
         let (_, entrance_ptr) =
             self.game_data.reverse_door_ptr_pair_map[&(loc.room_id, door_node_id)];
+        println!(
+            "reverse_door_ptr_pair_map[({}, {})] = {:?}",
+            loc.room_id,
+            door_node_id,
+            self.game_data.reverse_door_ptr_pair_map[&(loc.room_id, door_node_id)],
+        );
+
+        println!(
+            "chosen entrance_ptr = ${:04X}",
+            entrance_ptr.unwrap() & 0xFFFF,
+        );
+        println!(
+            "All reverse_door_ptr_pair_map entries for room {}:",
+            loc.room_id
+        );
+
+        for ((room_id, node_id), value) in &self.game_data.reverse_door_ptr_pair_map {
+            if *room_id == loc.room_id {
+                println!("  room={} node={} -> {:?}", room_id, node_id, value,);
+            }
+        }
         let x_pixels = (loc.x * 16.0) as isize;
         let y_pixels = (loc.y * 16.0) as isize - 24;
         let mut screen_x = x_pixels & 0xFF00;
@@ -2353,10 +2378,33 @@ impl Patcher<'_> {
         let samus_x = x_pixels - (screen_x + 0x80);
         let samus_y = y_pixels - screen_y;
         let station_addr = snes2pc(0x80C4E1);
+        println!(
+            "START ENTRY: {:04X} {:04X} {:04X} {:04X} {:04X} {:04X} {:04X}",
+            room_addr & 0xFFFF,
+            entrance_ptr.unwrap() & 0xFFFF,
+            0,
+            screen_x,
+            screen_y,
+            ((samus_y as i16) as u16),
+            ((samus_x as i16) as u16),
+        );
+        println!(
+            "START: room={} node={} door_node={} room_ptr=${:04X} entrance_ptr=${:04X}",
+            loc.room_id,
+            loc.node_id,
+            door_node_id,
+            room_addr & 0xFFFF,
+            entrance_ptr.unwrap() & 0xFFFF,
+        );
         self.rom
             .write_u16(station_addr, (room_addr & 0xFFFF) as isize)?;
         self.rom
             .write_u16(station_addr + 2, (entrance_ptr.unwrap() & 0xFFFF) as isize)?;
+        println!(
+            "Immediately after write: {:02X} {:02X}",
+            self.rom.data[station_addr + 2],
+            self.rom.data[station_addr + 3],
+        );
         self.rom.write_u16(station_addr + 6, screen_x)?;
         self.rom.write_u16(station_addr + 8, screen_y)?;
         self.rom
@@ -2408,7 +2456,67 @@ impl Patcher<'_> {
             let samus_x = x_pixels - (screen_x + 0x80);
             let samus_y = y_pixels - screen_y;
             let addr = snes2pc(MAP_WARP_TABLE_ADDR + area * 14);
+            println!(
+                "\
+{} (Area {})
+  room: {} (id={})
+  room_ptr: ${:04X}
+  node_id: {}
+  door_node_id: {}
+  entrance_ptr: ${:04X}
+  x,y: ({:.1}, {:.1})
+  x_pixels=${:04X} y_pixels=${:04X}
+  screen_x=${:04X} screen_y=${:04X}
+  samus_x=${:04X} samus_y=${:04X}",
+                self.game_data.area_names[area],
+                area,
+                loc.name,
+                loc.room_id,
+                room_ptr,
+                loc.node_id,
+                door_node_id,
+                entrance_ptr,
+                loc.x,
+                loc.y,
+                x_pixels as u16,
+                y_pixels as u16,
+                screen_x as u16,
+                screen_y as u16,
+                (samus_x as i16) as u16,
+                (samus_y as i16) as u16,
+            );
 
+            println!(
+                "TABLE ENTRY: {:04X} {:04X} 0000 {:04X} {:04X} {:04X} {:04X}",
+                room_ptr,
+                entrance_ptr,
+                screen_x as u16,
+                screen_y as u16,
+                (samus_y as i16) as u16,
+                (samus_x as i16) as u16,
+            );
+
+            let pair = self
+                .game_data
+                .reverse_door_ptr_pair_map
+                .get(&(loc.room_id, door_node_id))
+                .unwrap();
+
+            println!(
+                "room_id={} door_node_id={} -> reverse_door_ptr_pair_map = {:?}",
+                loc.room_id, door_node_id, pair,
+            );
+
+            for ((room_id, node_id), (_, ptr)) in &self.game_data.reverse_door_ptr_pair_map {
+                if *room_id == loc.room_id {
+                    println!(
+                        "room {} node {} -> entrance_ptr ${:04X}",
+                        room_id,
+                        node_id,
+                        ptr.unwrap_or(0),
+                    );
+                }
+            }
             self.rom.write_u16(addr, room_ptr as isize)?;
             self.rom.write_u16(addr + 2, entrance_ptr as isize)?;
             self.rom.write_u16(addr + 4, 0)?;
@@ -3733,7 +3841,6 @@ pub fn make_rom(
     patcher.write_room_name_font()?;
     patcher.write_room_name_data()?;
     patcher.remove_non_blue_doors()?;
-    patcher.write_map_warp_table()?;
     patcher.write_crash_handler(&patcher.settings.quality_of_life_settings.crash_fixes)?;
     override_music(patcher.rom)?;
     if randomizer_settings.map_layout != "Vanilla"
@@ -3773,6 +3880,7 @@ pub fn make_rom(
     patcher.apply_mother_brain_setup_asm()?;
     patcher.apply_extra_setup_asm()?;
     patcher.write_extra_room_data()?;
+    patcher.write_map_warp_table()?;
 
     info!("CustomizeSettings: {customize_settings:?}");
     customize_rom(
