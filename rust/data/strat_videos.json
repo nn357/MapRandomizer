@@ -5145,6 +5145,14 @@
   },
   {
     "room_id": 34,
+    "strat_id": 79,
+    "video_id": 10669,
+    "created_user": "Sam",
+    "note": "",
+    "dev_note": ""
+  },
+  {
+    "room_id": 34,
     "strat_id": 68,
     "video_id": 7026,
     "created_user": "Sam",
@@ -12312,6 +12320,22 @@
     "dev_note": ""
   },
   {
+    "room_id": 57,
+    "strat_id": 18,
+    "video_id": 10658,
+    "created_user": "Sam",
+    "note": "",
+    "dev_note": ""
+  },
+  {
+    "room_id": 57,
+    "strat_id": 19,
+    "video_id": 10659,
+    "created_user": "Sam",
+    "note": "",
+    "dev_note": ""
+  },
+  {
     "room_id": 59,
     "strat_id": 2,
     "video_id": 1792,
@@ -15262,6 +15286,14 @@
     "created_user": "Sam",
     "note": "",
     "dev_note": ""
+  },
+  {
+    "room_id": 65,
+    "strat_id": 24,
+    "video_id": 2635,
+    "created_user": "Sam",
+    "note": "With Supers, Ice, No Wall Jump",
+    "dev_note": "Also showcases a low-Energy farm and spark, but that will be shown in a different video."
   },
   {
     "room_id": 65,
@@ -18461,6 +18493,22 @@
     "video_id": 6555,
     "created_user": "maddo",
     "note": "Turn around in X-mode",
+    "dev_note": ""
+  },
+  {
+    "room_id": 84,
+    "strat_id": 39,
+    "video_id": 10660,
+    "created_user": "Sam",
+    "note": "",
+    "dev_note": ""
+  },
+  {
+    "room_id": 84,
+    "strat_id": 40,
+    "video_id": 10661,
+    "created_user": "Sam",
+    "note": "",
     "dev_note": ""
   },
   {
@@ -31650,9 +31698,17 @@
   {
     "room_id": 127,
     "strat_id": 54,
+    "video_id": 10482,
+    "created_user": "kyleb",
+    "note": "Low Wall Jump",
+    "dev_note": ""
+  },
+  {
+    "room_id": 127,
+    "strat_id": 54,
     "video_id": 2368,
     "created_user": "Sam",
-    "note": "",
+    "note": "High Wall Jump",
     "dev_note": ""
   },
   {
@@ -40488,6 +40544,22 @@
     "dev_note": ""
   },
   {
+    "room_id": 158,
+    "strat_id": 16,
+    "video_id": 10664,
+    "created_user": "Sam",
+    "note": "",
+    "dev_note": ""
+  },
+  {
+    "room_id": 158,
+    "strat_id": 17,
+    "video_id": 10665,
+    "created_user": "Sam",
+    "note": "",
+    "dev_note": ""
+  },
+  {
     "room_id": 168,
     "strat_id": 3,
     "video_id": 2244,
@@ -40547,6 +40619,14 @@
     "room_id": 165,
     "strat_id": 43,
     "video_id": 7280,
+    "created_user": "Sam",
+    "note": "",
+    "dev_note": ""
+  },
+  {
+    "room_id": 165,
+    "strat_id": 44,
+    "video_id": 10666,
     "created_user": "Sam",
     "note": "",
     "dev_note": ""
@@ -40659,6 +40739,14 @@
     "room_id": 165,
     "strat_id": 45,
     "video_id": 7282,
+    "created_user": "Sam",
+    "note": "",
+    "dev_note": ""
+  },
+  {
+    "room_id": 165,
+    "strat_id": 46,
+    "video_id": 10667,
     "created_user": "Sam",
     "note": "",
     "dev_note": ""
@@ -43996,6 +44084,14 @@
     "strat_id": 135,
     "video_id": 9207,
     "created_user": "kyleb",
+    "note": "",
+    "dev_note": ""
+  },
+  {
+    "room_id": 173,
+    "strat_id": 136,
+    "video_id": 10668,
+    "created_user": "Sam",
     "note": "",
     "dev_note": ""
   },
@@ -57777,6 +57873,14 @@
   },
   {
     "room_id": 219,
+    "strat_id": 34,
+    "video_id": 10657,
+    "created_user": "Sam",
+    "note": "",
+    "dev_note": ""
+  },
+  {
+    "room_id": 219,
     "strat_id": 36,
     "video_id": 9590,
     "created_user": "Sam",
@@ -58357,6 +58461,14 @@
     "video_id": 5058,
     "created_user": "Sam",
     "note": "Double SpringBall Jump, Remote Acquire",
+    "dev_note": ""
+  },
+  {
+    "room_id": 179,
+    "strat_id": 72,
+    "video_id": 10670,
+    "created_user": "Sam",
+    "note": "",
     "dev_note": ""
   },
   {
@@ -61793,6 +61905,14 @@
   },
   {
     "room_id": 226,
+    "strat_id": 82,
+    "video_id": 10653,
+    "created_user": "Sam",
+    "note": "",
+    "dev_note": ""
+  },
+  {
+    "room_id": 226,
     "strat_id": 15,
     "video_id": 2809,
     "created_user": "Sam",
@@ -62160,6 +62280,14 @@
     "dev_note": ""
   },
   {
+    "room_id": 226,
+    "strat_id": 86,
+    "video_id": 10654,
+    "created_user": "Sam",
+    "note": "",
+    "dev_note": ""
+  },
+  {
     "room_id": 227,
     "strat_id": 2,
     "video_id": 7864,
@@ -62197,6 +62325,14 @@
     "video_id": 6182,
     "created_user": "Sam",
     "note": "With 3 Power Bombs",
+    "dev_note": ""
+  },
+  {
+    "room_id": 227,
+    "strat_id": 59,
+    "video_id": 10652,
+    "created_user": "Sam",
+    "note": "",
     "dev_note": ""
   },
   {
@@ -62464,6 +62600,14 @@
     "dev_note": ""
   },
   {
+    "room_id": 227,
+    "strat_id": 61,
+    "video_id": 10651,
+    "created_user": "Sam",
+    "note": "",
+    "dev_note": ""
+  },
+  {
     "room_id": 228,
     "strat_id": 2,
     "video_id": 7890,
@@ -62541,6 +62685,14 @@
     "video_id": 9589,
     "created_user": "Sam",
     "note": "Kill Metroid, with Power Bombs",
+    "dev_note": ""
+  },
+  {
+    "room_id": 228,
+    "strat_id": 55,
+    "video_id": 10650,
+    "created_user": "Sam",
+    "note": "",
     "dev_note": ""
   },
   {
@@ -62721,6 +62873,14 @@
   },
   {
     "room_id": 228,
+    "strat_id": 58,
+    "video_id": 10649,
+    "created_user": "Sam",
+    "note": "",
+    "dev_note": ""
+  },
+  {
+    "room_id": 228,
     "strat_id": 30,
     "video_id": 2772,
     "created_user": "Sam",
@@ -62803,6 +62963,14 @@
     "room_id": 229,
     "strat_id": 31,
     "video_id": 8030,
+    "created_user": "Sam",
+    "note": "",
+    "dev_note": ""
+  },
+  {
+    "room_id": 229,
+    "strat_id": 32,
+    "video_id": 10647,
     "created_user": "Sam",
     "note": "",
     "dev_note": ""
@@ -62968,6 +63136,14 @@
     "dev_note": "Caveat: Logically this can be done without a Rinka hit"
   },
   {
+    "room_id": 229,
+    "strat_id": 36,
+    "video_id": 10648,
+    "created_user": "Sam",
+    "note": "",
+    "dev_note": ""
+  },
+  {
     "room_id": 238,
     "strat_id": 2,
     "video_id": 9845,
@@ -62979,6 +63155,14 @@
     "room_id": 238,
     "strat_id": 3,
     "video_id": 2089,
+    "created_user": "Sam",
+    "note": "",
+    "dev_note": ""
+  },
+  {
+    "room_id": 238,
+    "strat_id": 47,
+    "video_id": 10656,
     "created_user": "Sam",
     "note": "",
     "dev_note": ""
@@ -63035,6 +63219,14 @@
     "room_id": 238,
     "strat_id": 10,
     "video_id": 2088,
+    "created_user": "Sam",
+    "note": "",
+    "dev_note": ""
+  },
+  {
+    "room_id": 238,
+    "strat_id": 48,
+    "video_id": 10655,
     "created_user": "Sam",
     "note": "",
     "dev_note": ""
@@ -63265,6 +63457,14 @@
   },
   {
     "room_id": 236,
+    "strat_id": 62,
+    "video_id": 10646,
+    "created_user": "Sam",
+    "note": "",
+    "dev_note": ""
+  },
+  {
+    "room_id": 236,
     "strat_id": 31,
     "video_id": 5682,
     "created_user": "Sam",
@@ -63347,6 +63547,14 @@
     "room_id": 236,
     "strat_id": 58,
     "video_id": 2086,
+    "created_user": "Sam",
+    "note": "",
+    "dev_note": ""
+  },
+  {
+    "room_id": 236,
+    "strat_id": 65,
+    "video_id": 10645,
     "created_user": "Sam",
     "note": "",
     "dev_note": ""
@@ -63707,6 +63915,22 @@
     "room_id": 240,
     "strat_id": 16,
     "video_id": 7689,
+    "created_user": "Sam",
+    "note": "",
+    "dev_note": ""
+  },
+  {
+    "room_id": 240,
+    "strat_id": 22,
+    "video_id": 10663,
+    "created_user": "Sam",
+    "note": "",
+    "dev_note": ""
+  },
+  {
+    "room_id": 240,
+    "strat_id": 23,
+    "video_id": 10662,
     "created_user": "Sam",
     "note": "",
     "dev_note": ""

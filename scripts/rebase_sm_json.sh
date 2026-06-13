@@ -16,7 +16,7 @@ git checkout ${COMMIT}
 # Retain a reference to the existing map-rando branch as a second parent (ignored in the merge):
 # This preserves the history of the map-rando branch even while we rebase it.
 git merge -s ours kjbranch/map-rando -m "New upstream version"
-git tag new-base
+git tag -f new-base
 
 # Squash the changes since the previous rebase into a single commit.
 # Exclude the auto-generated schema files from the commit, to avoid potential unnecessary conflicts.
