@@ -9882,6 +9882,14 @@
   {
     "room_id": 51,
     "strat_id": 90,
+    "video_id": 7005,
+    "created_user": "Osse101",
+    "note": "",
+    "dev_note": ""
+  },
+  {
+    "room_id": 51,
+    "strat_id": 90,
     "video_id": 7009,
     "created_user": "maddo",
     "note": "",
@@ -25109,6 +25117,38 @@
     "video_id": 10379,
     "created_user": "Sam",
     "note": "",
+    "dev_note": ""
+  },
+  {
+    "room_id": 112,
+    "strat_id": 85,
+    "video_id": 9698,
+    "created_user": "maddo",
+    "note": "Double suit, 4 spike hits",
+    "dev_note": ""
+  },
+  {
+    "room_id": 112,
+    "strat_id": 85,
+    "video_id": 9699,
+    "created_user": "maddo",
+    "note": "Gravity, 4 spike hits",
+    "dev_note": ""
+  },
+  {
+    "room_id": 112,
+    "strat_id": 86,
+    "video_id": 9700,
+    "created_user": "maddo",
+    "note": "Varia, 6 spike hits",
+    "dev_note": ""
+  },
+  {
+    "room_id": 112,
+    "strat_id": 86,
+    "video_id": 9701,
+    "created_user": "maddo",
+    "note": "Suitless, 6 spike hits",
     "dev_note": ""
   },
   {
