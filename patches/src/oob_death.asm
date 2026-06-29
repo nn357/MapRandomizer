@@ -64,7 +64,6 @@ check_oob:
 
     lda #$0044    ; msg ID
     jsl !bug_dialog   ; bug dialog
-    jsl !kill_samus
 
 .skip:
     rtl
