@@ -3,6 +3,8 @@
 arch snes.cpu
 lorom
 
+incsrc "constants.asm"
+
 !any_bank_free_space_start = $80D140
 !any_bank_free_space_end = $80D200
 
@@ -61,8 +63,9 @@ check_oob:
     beq .skip
 
     lda #$0044    ; msg ID
-    jsl $85b000   ; bug dialog
+    jsl !bug_dialog   ; bug dialog
+    jsl !kill_samus
 
 .skip:
     rtl
-warnpc !any_bank_free_space_end
+assert pc() <= !any_bank_free_space_end
