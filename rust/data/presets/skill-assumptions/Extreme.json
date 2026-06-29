@@ -1355,6 +1355,13 @@
             "enabled": true
         },
         {
+            "room_id": 173,
+            "notable_id": 1,
+            "room_name": "Fish Tank",
+            "notable_name": "Top Left Direct Jump",
+            "enabled": true
+        },
+        {
             "room_id": 178,
             "notable_id": 2,
             "room_name": "Mama Turtle Room",
@@ -1748,13 +1755,6 @@
         },
         {
             "room_id": 173,
-            "notable_id": 1,
-            "room_name": "Fish Tank",
-            "notable_name": "Top Left Direct Jump",
-            "enabled": true
-        },
-        {
-            "room_id": 173,
             "notable_id": 4,
             "room_name": "Fish Tank",
             "notable_name": "Room Entry Fall onto Frozen Fish",
@@ -2017,13 +2017,6 @@
             "notable_id": 4,
             "room_name": "Big Pink",
             "notable_name": "Fast Mockball Leave With Spark",
-            "enabled": true
-        },
-        {
-            "room_id": 58,
-            "notable_id": 2,
-            "room_name": "Dachora Room",
-            "notable_name": "Tankless Bootless Shinespark",
             "enabled": true
         },
         {
@@ -2303,7 +2296,7 @@
             "room_id": 189,
             "notable_id": 6,
             "room_name": "Colosseum",
-            "notable_name": "Spike Platforming with Move Assist (Left to Right)",
+            "notable_name": "Spike Platforming with Move Assist",
             "enabled": true
         },
         {
@@ -2493,6 +2486,13 @@
             "notable_id": 9,
             "room_name": "Big Pink",
             "notable_name": "Zeb Ice Clip",
+            "enabled": true
+        },
+        {
+            "room_id": 58,
+            "notable_id": 2,
+            "room_name": "Dachora Room",
+            "notable_name": "Tankless Bootless Shinespark",
             "enabled": true
         },
         {
@@ -3574,6 +3574,13 @@
             "enabled": false
         },
         {
+            "room_id": 232,
+            "notable_id": 3,
+            "room_name": "Big Boy Room",
+            "notable_name": "Baby Drain Spark Interrupt",
+            "enabled": false
+        },
+        {
             "room_id": 238,
             "notable_id": 3,
             "room_name": "Mother Brain Room",
@@ -3704,6 +3711,13 @@
             "notable_id": 9,
             "room_name": "Lava Dive Room",
             "notable_name": "Artificial Morph, Triple Spring Ball Jump",
+            "enabled": false
+        },
+        {
+            "room_id": 112,
+            "notable_id": 4,
+            "room_name": "Lava Grapple Tunnel",
+            "notable_name": "Blue Suit Rapid Suitless Damage Boosts",
             "enabled": false
         },
         {

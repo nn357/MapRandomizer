@@ -836,7 +836,7 @@
     "room_name": "Dachora Room",
     "notable_id": 2,
     "name": "Tankless Bootless Shinespark",
-    "difficulty": "Expert",
+    "difficulty": "Expert+",
     "video_id": 408
   },
   {
@@ -1324,7 +1324,7 @@
     "room_name": "Lava Grapple Tunnel",
     "notable_id": 4,
     "name": "Blue Suit Rapid Suitless Damage Boosts",
-    "difficulty": "Ignored",
+    "difficulty": "Insane",
     "video_id": 9701
   },
   {
@@ -2156,7 +2156,7 @@
     "room_name": "Fish Tank",
     "notable_id": 1,
     "name": "Top Left Direct Jump",
-    "difficulty": "Very Hard",
+    "difficulty": "Hard",
     "video_id": 679
   },
   {
@@ -2603,7 +2603,7 @@
     "room_id": 189,
     "room_name": "Colosseum",
     "notable_id": 6,
-    "name": "Spike Platforming with Move Assist (Left to Right)",
+    "name": "Spike Platforming with Move Assist",
     "difficulty": "Expert",
     "video_id": 403
   },
@@ -3420,8 +3420,8 @@
     "room_name": "Big Boy Room",
     "notable_id": 3,
     "name": "Baby Drain Spark Interrupt",
-    "difficulty": "Ignored",
-    "video_id": null
+    "difficulty": "Extreme+",
+    "video_id": 8576
   },
   {
     "room_id": 226,

@@ -1,5 +1,5 @@
 {
-    "version": 122,
+    "version": 123,
     "name": "Mentor Tournament",
     "skill_assumption_settings": {
         "preset": "Medium",
@@ -1358,6 +1358,13 @@
                 "enabled": false
             },
             {
+                "room_id": 173,
+                "notable_id": 1,
+                "room_name": "Fish Tank",
+                "notable_name": "Top Left Direct Jump",
+                "enabled": false
+            },
+            {
                 "room_id": 178,
                 "notable_id": 2,
                 "room_name": "Mama Turtle Room",
@@ -1751,13 +1758,6 @@
             },
             {
                 "room_id": 173,
-                "notable_id": 1,
-                "room_name": "Fish Tank",
-                "notable_name": "Top Left Direct Jump",
-                "enabled": false
-            },
-            {
-                "room_id": 173,
                 "notable_id": 4,
                 "room_name": "Fish Tank",
                 "notable_name": "Room Entry Fall onto Frozen Fish",
@@ -2020,13 +2020,6 @@
                 "notable_id": 4,
                 "room_name": "Big Pink",
                 "notable_name": "Fast Mockball Leave With Spark",
-                "enabled": false
-            },
-            {
-                "room_id": 58,
-                "notable_id": 2,
-                "room_name": "Dachora Room",
-                "notable_name": "Tankless Bootless Shinespark",
                 "enabled": false
             },
             {
@@ -2306,7 +2299,7 @@
                 "room_id": 189,
                 "notable_id": 6,
                 "room_name": "Colosseum",
-                "notable_name": "Spike Platforming with Move Assist (Left to Right)",
+                "notable_name": "Spike Platforming with Move Assist",
                 "enabled": false
             },
             {
@@ -2496,6 +2489,13 @@
                 "notable_id": 9,
                 "room_name": "Big Pink",
                 "notable_name": "Zeb Ice Clip",
+                "enabled": false
+            },
+            {
+                "room_id": 58,
+                "notable_id": 2,
+                "room_name": "Dachora Room",
+                "notable_name": "Tankless Bootless Shinespark",
                 "enabled": false
             },
             {
@@ -3577,6 +3577,13 @@
                 "enabled": false
             },
             {
+                "room_id": 232,
+                "notable_id": 3,
+                "room_name": "Big Boy Room",
+                "notable_name": "Baby Drain Spark Interrupt",
+                "enabled": false
+            },
+            {
                 "room_id": 238,
                 "notable_id": 3,
                 "room_name": "Mother Brain Room",
@@ -3707,6 +3714,13 @@
                 "notable_id": 9,
                 "room_name": "Lava Dive Room",
                 "notable_name": "Artificial Morph, Triple Spring Ball Jump",
+                "enabled": false
+            },
+            {
+                "room_id": 112,
+                "notable_id": 4,
+                "room_name": "Lava Grapple Tunnel",
+                "notable_name": "Blue Suit Rapid Suitless Damage Boosts",
                 "enabled": false
             },
             {
@@ -4685,6 +4699,20 @@
             "other": "No",
             "all_areas": false
         },
+        "map_station_activation_settings": {
+            "preset": "Full",
+            "save_stations": "Full",
+            "refill_stations": "Full",
+            "ship": "Full",
+            "objectives": "Full",
+            "area_transitions": "Full",
+            "items1": "Full",
+            "items2": "Full",
+            "items3": "Full",
+            "items4": "Full",
+            "other": "Full",
+            "sub_area": "Same"
+        },
         "item_markers": "4-Tiered",
         "room_outline_revealed": true,
         "opposite_area_revealed": true,
@@ -4710,11 +4738,11 @@
         "acid_chozo": true,
         "remove_climb_lava": true,
         "crash_fixes": {
-            "preset": "Death",
-            "spring_ball": "Death",
-            "yapping_maw": "Death",
-            "auto_reserve": "Death",
-            "x_mode": "Death",
+            "preset": "Warn",
+            "spring_ball": "Warn",
+            "yapping_maw": "Warn",
+            "auto_reserve": "Warn",
+            "x_mode": "Warn",
             "sprite_overflow": "Silent"
         },
         "fix_blue_echoes": true,
@@ -4842,7 +4870,6 @@
         },
         "door_locks_size": "Large",
         "maps_revealed": null,
-        "map_station_reveal": "Full",
         "energy_free_shinesparks": false,
         "all_enemies_respawn": false,
         "race_mode": true,
