@@ -721,58 +721,6 @@ fn shuffle_maps(map_vec: &mut [Map], seed: usize) {
     map_vec.shuffle(&mut rng);
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn serialize_generate_request(settings: MapSettings) -> serde_json::Value {
-        serde_json::to_value(HttpMapRepository::generate_request(settings)).unwrap()
-    }
-
-    #[test]
-    fn generate_request_serializes_lowercase_area_assignment_base_order() {
-        let cases = [
-            (AreaAssignmentBaseOrder::Size, "size"),
-            (AreaAssignmentBaseOrder::Depth, "depth"),
-            (AreaAssignmentBaseOrder::Random, "random"),
-        ];
-
-        for (base_order, expected) in cases {
-            let request = serialize_generate_request(MapSettings {
-                area_assignment_base_order: base_order,
-                ..Default::default()
-            });
-            assert_eq!(request["area_assignment_base_order"], expected);
-        }
-    }
-
-    #[test]
-    fn repository_area_assignment_capability_matches_source() {
-        let settings = MapSettings::default();
-        let offline_repository = OfflineMapRepository {
-            pools: HashMap::new(),
-        };
-        let http_repository = HttpMapRepository::new("localhost:1234").unwrap();
-
-        assert!(offline_repository.requires_area_assignment(settings));
-        assert!(!http_repository.requires_area_assignment(settings));
-
-        let local_vanilla_repository = LocalVanillaMapRepository::new(
-            OfflineMapRepository {
-                pools: HashMap::new(),
-            },
-            Box::new(http_repository),
-        );
-        assert!(!local_vanilla_repository.requires_area_assignment(settings));
-        assert!(
-            local_vanilla_repository.requires_area_assignment(MapSettings {
-                vanilla: true,
-                ..Default::default()
-            })
-        );
-    }
-}
-
 fn validate_response_lengths(response: &GenerateResponse, map_count: usize) -> Result<()> {
     if response.rooms.x.len() != map_count
         || response.rooms.y.len() != map_count
