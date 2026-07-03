@@ -531,6 +531,20 @@ fn response_map_to_map(
         ));
     }
 
+    // Green Brinstar Main Shaft internal door
+    doors.push((
+        (Some(0x18cee), Some(0x18d06)),
+        (Some(0x18d06), Some(0x18cee)),
+        true,
+    ));
+
+    // Pants Room internal door
+    doors.push((
+        (Some(0x1a78c), Some(0x1a7a4)),
+        (Some(0x1a7a4), Some(0x1a78c)),
+        true,
+    ));
+
     Ok(Map {
         room_mask,
         rooms,
