@@ -1,0 +1,108 @@
+{
+  "$schema": "../../../schema/scenarios.schema.json",
+  "scenarios": [
+    {
+      "name": "Enough Energy",
+      "startRoomId": 0,
+      "startNodeId": 1,
+      "startState": {
+        "energy": {"remaining": 91}
+      },
+      "endRoomId": 0,
+      "endNodeId": 2,
+      "endState": {
+        "energy": {"remaining": 99}
+      }
+    },
+    {
+      "name": "Not Enough Energy",
+      "startRoomId": 0,
+      "startNodeId": 1,
+      "startState": {
+        "energy": {"remaining": 90}
+      },
+      "endRoomId": 0,
+      "endNodeId": 2,
+      "fail": true
+    },
+    {
+      "name": "Extra Energy",
+      "globalState": {
+        "maxEnergy": 199
+      },
+      "startRoomId": 0,
+      "startNodeId": 1,
+      "startState": {
+        "energy": {"remaining": 150}
+      },
+      "endRoomId": 0,
+      "endNodeId": 2,
+      "endState": {
+        "energy": {"remaining": 150}
+      }
+    },
+    {
+      "name": "Extra Energy (Reserves, Forward)",
+      "globalState": {
+        "maxReserves": 100
+      },
+      "startRoomId": 0,
+      "startNodeId": 1,
+      "startState": {
+        "energy": {"remaining": 99},
+        "reserves": {"remaining": 50}
+      },
+      "endRoomId": 0,
+      "endNodeId": 2,
+      "endState": {
+        "energy": {"remaining": 99},
+        "reserves": {"remaining": 50}        
+      },
+      "reverse": "weak"
+    },
+    {
+      "name": "Extra Energy (Reserves, Reverse)",
+      "globalState": {
+        "maxReserves": 100
+      },
+      "startRoomId": 0,
+      "startNodeId": 1,
+      "startState": {
+        "energy": {"remaining": 41},
+        "reserves": {"remaining": 50}
+      },
+      "endRoomId": 0,
+      "endNodeId": 2,
+      "endState": {
+        "energy": {"remaining": 41},
+        "reserves": {"remaining": 50}
+      },
+      "forward": "weak"
+    },
+    {
+      "name": "Enough Energy (Consumed, Forward)",
+      "startRoomId": 0,
+      "startNodeId": 1,
+      "startState": {
+        "energy": {"consumed": 8}
+      },
+      "endRoomId": 0,
+      "endNodeId": 2,
+      "endState": {
+        "energy": {"remaining": 99}
+      },
+      "reverse": "weak"
+    },
+    {
+      "name": "Not Enough Energy (Consumed)",
+      "startRoomId": 0,
+      "startNodeId": 1,
+      "startState": {
+        "energy": {"consumed": 9}
+      },
+      "endRoomId": 0,
+      "endNodeId": 2,
+      "fail": true
+    }    
+  ]
+}

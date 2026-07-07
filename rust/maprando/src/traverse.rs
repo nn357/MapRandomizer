@@ -461,19 +461,33 @@ fn apply_heat_frames_with_energy_drops(
             }
             let heat_energy =
                 (frames as f32 * difficulty.resource_multiplier / 4.0).ceil() as Capacity;
-            total_drop_value = Capacity::min(total_drop_value, heat_energy);
+            let net_energy = Capacity::max(0, heat_energy - total_drop_value);
             if reverse {
-                new_local.refill_energy(total_drop_value, true, &global.inventory, reverse);
-                if new_local.use_energy(heat_energy, true, &global.inventory, reverse) {
-                    state_output.push(new_local);
-                }
-            } else {
-                if !new_local.use_energy(heat_energy, true, &global.inventory, reverse) {
+                if !new_local.use_energy(net_energy, true, &global.inventory, reverse) {
                     continue;
                 }
-                new_local.refill_energy(total_drop_value, true, &global.inventory, reverse);
-                state_output.push(new_local);
+                if !new_local.ensure_energy_available(
+                    heat_energy + 1,
+                    true,
+                    &global.inventory,
+                    reverse,
+                ) {
+                    continue;
+                }
+            } else {
+                if !new_local.ensure_energy_available(
+                    heat_energy + 1,
+                    true,
+                    &global.inventory,
+                    reverse,
+                ) {
+                    continue;
+                }
+                if !new_local.use_energy(net_energy, true, &global.inventory, reverse) {
+                    continue;
+                }
             }
+            state_output.push(new_local);
         }
         match state_output.len() {
             0 => false.into(),
