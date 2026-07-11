@@ -1538,61 +1538,50 @@ impl Patcher<'_> {
             ],
         ];
 
+        // Songs which should not be replaced, e.g. boss music.
+        // Some of these have track changes when the fight starts,
+        // and if the correct songset were not loaded it could crash the game.
         let songs_to_keep: Vec<u16> = vec![
-            // Elevator (item room music):
-            0x0300, // Elevator
-            0x0309, // Space Pirate Elevator
-            0x0312, // Lower Brinstar Elevator
-            0x0324, // Golden Torizo incoming fight
-            0x0330, // Bowling Alley
-            // Bosses:
-            0x052A, // Miniboss Fight (Spore Spawn, Botwoon)
-            // 0x0627,  // Boss Fight (Phantoon, Kraid), also Baby Kraid room.
-            0x0527, // Boss Fight (?)
+            0x0324, // Golden Torizo incoming fight (also Bomb Torizo)
             0x0424, // Boss Fight (Ridley)
             0x0524, // Boss Fight (Draygon)
+            0x0527, // Boss Fight (Crocomire)
+            0x052A, // Miniboss Fight (Spore Spawn, Botwoon)
+            0x0627, // Boss Fight (Phantoon, Kraid), also Baby Kraid room.
+            0x0645, // Big Boy Room (incoming)
         ];
 
-        let rooms_to_leave_unchanged = [
-            238, // Mother Brain Room,
-            232, // Big Boy Room
-            84,  // Kraid Room
-            158, // Phantoon's Room
+        let rooms_to_normalize = [
+            // In vanilla, Golden Torizo Energy Recharge (room_id=152) plays the item/elevator music,
+            // but that is only because of it being next to Screw Attack Room and Golden Torizo.
+            // We want it to behave like the other Refill rooms and use area-themed music.
+            152, // Golden Torizo Energy Recharge
+            // In vanilla, Baby Kraid Room plays pre-boss music when Kraid is alive, but we want
+            // it to behave like a regular room.
+            82, // Baby Kraid Room
         ];
         for (room_idx, room) in self.game_data.room_geometry.iter().enumerate() {
-            if rooms_to_leave_unchanged.contains(&room.room_id) {
-                continue;
-            }
             let area = self.map.area[room_idx];
             let subarea = self.map.subarea[room_idx];
             let event_state_ptrs = get_room_state_ptrs(self.rom, room.rom_address)?;
             for &(_event_ptr, state_ptr) in &event_state_ptrs {
                 let song = self.rom.read_u16(state_ptr + 4)? as u16;
-                let statues_themed = tourian_neighbors.contains(&room_idx);
-                let is_elevator = (song & 0xFF00) == 0x0300;
-                if songs_to_keep.contains(&song)
-                    && room.room_id != 152
-                    && !(self.customize_settings.statues_hallway_audio
-                        != StatuesHallwayAudio::Disabled
-                        && statues_themed
-                        && is_elevator)
-                {
-                    // In vanilla, Golden Torizo Energy Recharge (room_id=152) plays the item/elevator music,
-                    // but that only seems to be because of it being next to Screw Attack Room.
-                    // We want it to behave like the other Refill rooms and use area-themed music.
-                    //
-                    // Rooms with elevator music are normally left alone; but if the room is
-                    // Statues Hallway-themed then we allow it to be overridden with the Statues Hallway track.
+                let is_normalized = rooms_to_normalize.contains(&room.room_id);
+                if songs_to_keep.contains(&song) && !is_normalized {
                     continue;
                 }
-                let new_song = if statues_themed
+
+                let is_statues_themed = tourian_neighbors.contains(&room_idx)
                     && self.customize_settings.statues_hallway_audio
-                        != StatuesHallwayAudio::Disabled
-                {
-                    0x0400 // Statues Hallway track
-                } else {
-                    area_music[area][subarea]
-                };
+                        != StatuesHallwayAudio::Disabled;
+                let is_elevator = (song & 0xFF00) == 0x0300;
+                let mut new_song = area_music[area][subarea];
+
+                if is_statues_themed {
+                    new_song = (new_song & 0x00FF) | 0x0400;
+                } else if is_elevator && !is_normalized {
+                    new_song = (new_song & 0x00FF) | 0x0300;
+                }
 
                 self.rom.write_u16(state_ptr + 4, new_song as isize)?;
                 if room.room_id == 220 {

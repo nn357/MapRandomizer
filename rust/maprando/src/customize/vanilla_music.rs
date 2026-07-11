@@ -138,7 +138,7 @@ pub fn override_music(rom: &mut Rom) -> Result<()> {
         (0xA909, 0x15, 0x05), // room $A8F8 - Crumble Shaft
         (0xA934, 0x15, 0x05), // room $A923 - Crocomire Speedway
         (0xA9A3, 0x27, 0x05), // room $A98D - Crocomire's Room - state: crocomire not dead
-        (0xA9BD, 0x15, 0x05), // room $A98D - Crocomire's Room - state: crocomire not dead
+        (0xA9BD, 0x15, 0x05), // room $A98D - Crocomire's Room - state: crocomire dead
         (0xA9F6, 0x00, 0x03), // room $A9E5 - Hi Jump Boots Room
         (0xAA1F, 0x15, 0x05), // room $AA0E - Crocomire Escape
         (0xAA52, 0x15, 0x05), // room $AA41 - Hi Jump Energy Tank Room
