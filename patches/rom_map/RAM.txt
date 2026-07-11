@@ -28,6 +28,7 @@ $1F85: NMI area 3
 $1F86: NMI area 4
 $1F87: NMI area 5
 $1F88: NMI area 6
+$1F8A: palette theme index
 $7ED823: randomizer-specific event flags:
   $0001: bowling statue activated
   $0002: pit room door unlocked

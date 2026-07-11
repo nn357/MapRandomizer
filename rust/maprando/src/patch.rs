@@ -213,7 +213,8 @@ pub struct ExtraRoomData {
     // - word: tilemap offset to modify (relative to $703000)
     // - word: tilemap value to write
     pub dynamic_tiles: u16,
-    pub room_name: u16, // pointer to room name text in bank E3
+    pub room_name: u16,    // pointer to room name text in bank E3
+    pub palette_index: u8, // palette theme index
 }
 
 pub struct Patcher<'a> {
@@ -1315,10 +1316,9 @@ impl Patcher<'_> {
                 continue;
             }
 
-            self.extra_room_data
-                .get_mut(&room.rom_address)
-                .unwrap()
-                .map_area = self.map.area[i] as u8;
+            let extra_room_data = self.extra_room_data.get_mut(&room.rom_address).unwrap();
+            extra_room_data.map_area = self.map.area[i] as u8;
+            extra_room_data.palette_index = self.map.area[i] as u8;
             if let Some(twin_rom_address) = room.twin_rom_address {
                 self.extra_room_data
                     .get_mut(&twin_rom_address)
@@ -3189,7 +3189,7 @@ impl Patcher<'_> {
         let end_addr = snes2pc(0xB89000);
         for (&room_ptr, data) in sorted_hashmap_iter(&self.extra_room_data) {
             let addr = next_addr;
-            next_addr += 11;
+            next_addr += 12;
             // Write "extra room data", which is basically an extension of the room header:
             self.rom.write_u8(addr, data.map_area as isize)?;
             self.rom
@@ -3198,6 +3198,7 @@ impl Patcher<'_> {
             self.rom.write_u16(addr + 5, data.map_tilemap as isize)?;
             self.rom.write_u16(addr + 7, data.dynamic_tiles as isize)?;
             self.rom.write_u16(addr + 9, data.room_name as isize)?;
+            self.rom.write_u8(addr + 11, data.palette_index as isize)?;
             // Point to the room header extension using the "unused pointer"/"special X-ray" field.
             // Within a room, every room state points to the same extension.
             for (_, state_ptr) in get_room_state_ptrs(self.rom, room_ptr)? {

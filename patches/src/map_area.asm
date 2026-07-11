@@ -471,6 +471,11 @@ load_area:
     and #$00FF
     sta $1F5B
 
+    ; load palette theme index
+    lda $B8000B,x
+    and #$00FF
+    sta $1F8A
+
     ; mark area as explored (determinines set of valid area maps to cycle through in pause menu):
     jsl $80818E    ; convert map area to bitmask
     lda $05E7      ; load bitmask
