@@ -3705,7 +3705,6 @@ pub fn make_rom(
     patcher.apply_toilet_data()?;
     patcher.apply_mother_brain_setup_asm()?;
     patcher.apply_extra_setup_asm()?;
-    patcher.write_extra_room_data()?;
 
     info!("CustomizeSettings: {customize_settings:?}");
     customize_rom(
@@ -3716,7 +3715,10 @@ pub fn make_rom(
         game_data,
         samus_sprite_categories,
         mosaic_themes,
+        &mut patcher.extra_room_data,
     )?;
+
+    patcher.write_extra_room_data()?;
 
     // ROM Checksum: Do not modify the ROM contents after this point
     fix_snes_checksum(patcher.rom);

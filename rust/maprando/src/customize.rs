@@ -5,16 +5,16 @@ pub mod samus_sprite;
 pub mod vanilla_music;
 
 use anyhow::{Result, bail};
+use hashbrown::HashMap;
 use log::info;
 use std::cmp::min;
 use std::path::Path;
 
 use crate::patch::glowpatch_writer::write_glowpatch;
-use crate::patch::{Rom, apply_ips_patch, snes2pc, write_credits_big_char};
-use maprando_game::{GameData, Map};
+use crate::patch::{ExtraRoomData, Rom, apply_ips_patch, snes2pc, write_credits_big_char};
+use maprando_game::{GameData, Map, RoomPtr};
 use mosaic::MosaicTheme;
-use retiling::apply_retiling;
-use room_palettes::apply_area_themed_palettes;
+use retiling::apply_retiling_and_palettes;
 use samus_sprite::SamusSpriteCategory;
 
 struct AllocatorBlock {
@@ -73,7 +73,7 @@ pub enum MusicSettings {
     Disabled,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum PaletteTheme {
     Vanilla,
     AreaThemed,
@@ -509,9 +509,10 @@ pub fn customize_rom(
     game_data: &GameData,
     samus_sprite_categories: &[SamusSpriteCategory],
     mosaic_themes: &[MosaicTheme],
+    extra_room_data: &mut HashMap<RoomPtr, ExtraRoomData>,
 ) -> Result<()> {
     remove_mother_brain_flashing(rom)?;
-    apply_retiling(
+    apply_retiling_and_palettes(
         rom,
         orig_rom,
         map,
@@ -519,14 +520,9 @@ pub fn customize_rom(
         &settings.tile_theme,
         settings.statues_hallway_tiling,
         mosaic_themes,
+        &settings.palette_theme,
+        extra_room_data,
     )?;
-
-    match &settings.palette_theme {
-        PaletteTheme::Vanilla => {}
-        PaletteTheme::AreaThemed => {
-            apply_area_themed_palettes(rom)?;
-        }
-    }
 
     match settings.door_theme {
         DoorTheme::Vanilla => {}

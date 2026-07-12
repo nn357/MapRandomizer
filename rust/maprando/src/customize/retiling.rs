@@ -2,8 +2,8 @@ use std::path::Path;
 
 use super::mosaic::MosaicTheme;
 use crate::{
-    customize::StatuesHallwayTiling,
-    patch::{Rom, apply_ips_patch, bps::BPSPatch, get_room_state_ptrs, snes2pc},
+    customize::{PaletteTheme, StatuesHallwayTiling},
+    patch::{ExtraRoomData, Rom, apply_ips_patch, bps::BPSPatch, get_room_state_ptrs, snes2pc},
 };
 use anyhow::{Context, Result};
 use hashbrown::HashMap;
@@ -47,7 +47,7 @@ fn apply_toilet(rom: &mut Rom, orig_rom: &Rom, theme_name: &str) -> Result<()> {
     Ok(())
 }
 
-pub fn apply_retiling(
+pub fn apply_retiling_and_palettes(
     rom: &mut Rom,
     orig_rom: &Rom,
     map: &Map,
@@ -55,7 +55,17 @@ pub fn apply_retiling(
     theme: &TileTheme,
     statues_hallway_tiling: StatuesHallwayTiling,
     mosaic_themes: &[MosaicTheme],
+    palette_theme: &PaletteTheme,
+    extra_room_data: &mut HashMap<RoomPtr, ExtraRoomData>,
 ) -> Result<()> {
+    match &palette_theme {
+        PaletteTheme::Vanilla => {}
+        PaletteTheme::AreaThemed => {
+            // Set flag to enable behavior in "Area Palettes.asm":
+            rom.write_u16(snes2pc(0x8AC000), 0xF0F0)?;
+        }
+    }
+
     let statues_hallway_tiling = match (statues_hallway_tiling, theme) {
         (StatuesHallwayTiling::Disabled, _) => false,
         (StatuesHallwayTiling::Default, TileTheme::AreaThemed) => true,
@@ -107,6 +117,14 @@ pub fn apply_retiling(
     let mut theme_name_map: HashMap<RoomPtr, String> = HashMap::new();
     for (room_idx, room) in game_data.room_geometry.iter().enumerate() {
         let room_ptr = room.rom_address;
+        let area = map.area[room_idx];
+        let sub_area = map.subarea[room_idx];
+        let sub_sub_area = if !map.subsubarea.is_empty() {
+            map.subsubarea[room_idx]
+        } else {
+            // For backward compatibility, use subsubarea 0 for old maps that didn't have a subsubarea.
+            0
+        };
         let theme_name = match theme {
             TileTheme::Vanilla => {
                 if statues_hallway_tiling && tourian_neighbors_strict.contains(&room_idx) {
@@ -123,14 +141,6 @@ pub fn apply_retiling(
                 }
             }
             TileTheme::AreaThemed => {
-                let area = map.area[room_idx];
-                let sub_area = map.subarea[room_idx];
-                let sub_sub_area = if !map.subsubarea.is_empty() {
-                    map.subsubarea[room_idx]
-                } else {
-                    // For backward compatibility, use subsubarea 0 for old maps that didn't have a subsubarea.
-                    0
-                };
                 if statues_hallway_tiling && tourian_neighbors.contains(&room_idx) {
                     "StatuesHallway".to_string()
                 } else {
@@ -170,6 +180,16 @@ pub fn apply_retiling(
                 }
             }
         };
+
+        if theme_name == "BlueBrinstar"
+            && *theme == TileTheme::AreaThemed
+            && *palette_theme == PaletteTheme::AreaThemed
+        {
+            // Use Brinstar palette (rather than Crateria) for Blue Brinstar,
+            // so that it appears in its vanilla blue color.
+            let extra_room_data = extra_room_data.get_mut(&(room_ptr as RoomPtr)).unwrap();
+            extra_room_data.palette_index = 1;
+        }
         theme_name_map.insert(room_ptr, theme_name);
     }
 
