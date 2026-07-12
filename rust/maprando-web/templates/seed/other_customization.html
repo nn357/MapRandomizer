@@ -2,11 +2,13 @@
     <div class="col-md-4">
     <label class="col-form-label" for="room_palettes">{% include "help/room_palettes.html" %}Room palettes</label>
     </div>
-    <div class="col-md-6 col-lg-4 btn-group p-0" role="group" onchange="roomThemingSettingChanged()">
+    <div class="col-md-9 col-lg-6 btn-group p-0" role="group" onchange="roomThemingSettingChanged()">
         <input type="radio" class="btn-check" name="room_palettes" id="roomPalettesVanilla" value="vanilla">
         <label class="btn btn-outline-primary" style="width:120px" for="roomPalettesVanilla">Vanilla</label>
         <input type="radio" class="btn-check" name="room_palettes" id="roomPalettesAreaThemed" value="area-themed" checked>
         <label class="btn btn-outline-primary" style="width:120px" for="roomPalettesAreaThemed">Area-themed</label>
+        <input type="radio" class="btn-check" name="room_palettes" id="roomPalettesScrambled" value="scrambled" checked>
+        <label class="btn btn-outline-primary" style="width:120px" for="roomPalettesScrambled">Scrambled</label>
     </div>
 </div>
 

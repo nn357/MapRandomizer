@@ -60,7 +60,7 @@ pub fn apply_retiling_and_palettes(
 ) -> Result<()> {
     match &palette_theme {
         PaletteTheme::Vanilla => {}
-        PaletteTheme::AreaThemed => {
+        PaletteTheme::AreaThemed | PaletteTheme::Scrambled => {
             // Set flag to enable behavior in "Area Palettes.asm":
             rom.write_u16(snes2pc(0x8AC000), 0xF0F0)?;
         }
@@ -181,15 +181,27 @@ pub fn apply_retiling_and_palettes(
             }
         };
 
-        let palette_index = if theme_name == "BlueBrinstar"
-            && *theme == TileTheme::AreaThemed
-            && *palette_theme == PaletteTheme::AreaThemed
-        {
-            // Use Brinstar palette (rather than Crateria) for Blue Brinstar,
-            // so that it appears in its vanilla blue color.
-            1
-        } else {
-            area
+        let palette_index = match palette_theme {
+            PaletteTheme::Vanilla => {
+                // Dummy value: for vanilla palettes, palette index data is not used.
+                0
+            }
+            PaletteTheme::AreaThemed => {
+                if theme_name == "BlueBrinstar" && *theme == TileTheme::AreaThemed {
+                    // Use Brinstar palette (rather than Crateria) for Blue Brinstar,
+                    // so that it appears in its vanilla blue color.
+                    1
+                } else {
+                    area
+                }
+            }
+            PaletteTheme::Scrambled => {
+                let seed = random_seed ^ (room_ptr as u32);
+                let mut rng_seed = [0u8; 32];
+                rng_seed[..4].copy_from_slice(&seed.to_le_bytes());
+                let mut rng = rand::rngs::StdRng::from_seed(rng_seed);
+                rng.gen_range(0..6)
+            }
         };
 
         // Assign room palette (for area-themed palettes)

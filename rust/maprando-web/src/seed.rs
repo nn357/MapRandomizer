@@ -296,10 +296,11 @@ async fn customize_seed(
         reserve_hud_style: req.reserve_hud_style.0,
         vanilla_screw_attack_animation: req.vanilla_screw_attack_animation.0,
         room_names: req.room_names.0,
-        palette_theme: if req.room_palettes.0 == "area-themed" {
-            PaletteTheme::AreaThemed
-        } else {
-            PaletteTheme::Vanilla
+        palette_theme: match req.room_palettes.0.as_str() {
+            "area-themed" => PaletteTheme::AreaThemed,
+            "scrambled" => PaletteTheme::Scrambled,
+            "vanilla" => PaletteTheme::Vanilla,
+            _ => panic!("Unexpected palette_theme"),
         },
         tile_theme: if req.tile_theme.0 == "none" {
             TileTheme::Vanilla

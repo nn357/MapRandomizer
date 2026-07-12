@@ -77,6 +77,7 @@ pub enum MusicSettings {
 pub enum PaletteTheme {
     Vanilla,
     AreaThemed,
+    Scrambled,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
