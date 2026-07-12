@@ -21,7 +21,10 @@ music_load_hook:
 
 crateria_pirates_check:
     cmp #$0905  ; Is this Crateria Pirates track (Crateria subarea not containing Ship)
+    beq .check_awake
+    cmp #$0903  ; Is this the elevator track in the same songset (change it too, to avoid unnecessary reloads)
     bne return_to_crateria_check
+.check_awake:
     lda $7ED820
     bit #$0001  ; Is Zebes awake
     bne done
