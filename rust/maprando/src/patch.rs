@@ -1544,6 +1544,7 @@ impl Patcher<'_> {
         let songs_to_keep: Vec<u16> = vec![
             0x0324, // Golden Torizo incoming fight (also Bomb Torizo)
             0x0424, // Boss Fight (Ridley)
+            0x051E, // Mother Brain
             0x0524, // Boss Fight (Draygon)
             0x0527, // Boss Fight (Crocomire)
             0x052A, // Miniboss Fight (Spore Spawn, Botwoon)
