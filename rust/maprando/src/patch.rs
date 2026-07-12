@@ -1318,7 +1318,6 @@ impl Patcher<'_> {
 
             let extra_room_data = self.extra_room_data.get_mut(&room.rom_address).unwrap();
             extra_room_data.map_area = self.map.area[i] as u8;
-            extra_room_data.palette_index = self.map.area[i] as u8;
             if let Some(twin_rom_address) = room.twin_rom_address {
                 self.extra_room_data
                     .get_mut(&twin_rom_address)

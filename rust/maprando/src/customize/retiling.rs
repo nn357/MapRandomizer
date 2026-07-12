@@ -181,15 +181,29 @@ pub fn apply_retiling_and_palettes(
             }
         };
 
-        if theme_name == "BlueBrinstar"
+        let palette_index = if theme_name == "BlueBrinstar"
             && *theme == TileTheme::AreaThemed
             && *palette_theme == PaletteTheme::AreaThemed
         {
             // Use Brinstar palette (rather than Crateria) for Blue Brinstar,
             // so that it appears in its vanilla blue color.
-            let extra_room_data = extra_room_data.get_mut(&(room_ptr as RoomPtr)).unwrap();
-            extra_room_data.palette_index = 1;
+            1
+        } else {
+            area
+        };
+
+        // Assign room palette (for area-themed palettes)
+        extra_room_data
+            .get_mut(&(room_ptr as RoomPtr))
+            .unwrap()
+            .palette_index = palette_index as u8;
+        if let Some(twin_rom_address) = room.twin_rom_address {
+            extra_room_data
+                .get_mut(&twin_rom_address)
+                .unwrap()
+                .palette_index = palette_index as u8;
         }
+
         theme_name_map.insert(room_ptr, theme_name);
     }
 
