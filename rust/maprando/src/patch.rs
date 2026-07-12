@@ -1544,12 +1544,15 @@ impl Patcher<'_> {
         let songs_to_keep: Vec<u16> = vec![
             0x0324, // Golden Torizo incoming fight (also Bomb Torizo)
             0x0424, // Boss Fight (Ridley)
-            0x051E, // Mother Brain
             0x0524, // Boss Fight (Draygon)
             0x0527, // Boss Fight (Crocomire)
             0x052A, // Miniboss Fight (Spore Spawn, Botwoon)
             0x0627, // Boss Fight (Phantoon, Kraid), also Baby Kraid room.
             0x0645, // Big Boy Room (incoming)
+        ];
+
+        let rooms_to_keep: Vec<u16> = vec![
+            238, // Mother Brain Room
         ];
 
         let rooms_to_normalize = [
@@ -1562,6 +1565,9 @@ impl Patcher<'_> {
             82, // Baby Kraid Room
         ];
         for (room_idx, room) in self.game_data.room_geometry.iter().enumerate() {
+            if rooms_to_keep.contains(&(room.room_id as u16)) {
+                continue;
+            }
             let area = self.map.area[room_idx];
             let subarea = self.map.subarea[room_idx];
             let event_state_ptrs = get_room_state_ptrs(self.rom, room.rom_address)?;
