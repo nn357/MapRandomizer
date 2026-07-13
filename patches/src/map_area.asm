@@ -26,6 +26,11 @@ incsrc "constants.asm"
 !tiles_2bpp_address = $B200
 !tiles_2bpp_bank = $009A
 
+!missiledoorcolor = $dfe216 ; 
+!superdoorcolor = $dfe214  ; defined in alternate_door_colors.asm, can be overwritten in customize.rs [used for pause map alternate door colors]
+!pbdoorcolor = $dfe212     ; 
+
+
 !backup_area = $1F62
 !map_switch_direction = $1F66
 !unexplored_gray = #$294a
@@ -497,6 +502,7 @@ pause_start_hook:
     sta !backup_area  ; back up map area
     jsr set_hud_map_colors
     jsr update_pause_map_palette
+    jsr pause_hook_alternate_door_colors
     jsl load_bg3_map_tiles_wrapper
     ;jsr remove_samus_hud_indicator
     jsl $8085C6  ; save current map explored bits
@@ -516,12 +522,33 @@ load_tileset_palette_hook:
     rtl
 
 load_map_screen:
-    ; run hi-jacked instruction:
+   ; run hi-jacked instruction:
     sta $0763
 
+    ; modify palettes used for door colors if alternative door colors are enabled.
+    lda !alternative_door_colors
+    and #$00ff
+    beq .nodoorcolors
+    lda.l !superdoorcolor
+    sta $7ec0fc ; super doors palette 7 (unexplored)
+    sta $7ec05c ; super doors palette 2 (explored)
+    lda.l !missiledoorcolor
+    sta $7ec0ee ; missile doors palette 7 (unexplored)
+    sta $7ec04e ; missile doors palette 2 (explored)
+    lda.l !pbdoorcolor
+    sta $7ec0ec ; pb doors pallette 2 (unexplored)
+    sta $7ec04c ; pb dpprs palette 2 (explored)
+    bra .done
+.nodoorcolors   ; there is no palette modification done for the missile door color if not using alternative door colors.
+    lda $b6f0ec ; pb doors
+    sta $7ec0ec
+    lda $b6f0fc ; super doors
+    sta $7ec0fc
+    lda $b6f05c
+    sta $7ec05c
+.done
+
     ; palette 2:
-    lda $B6F05C
-    sta $7EC05C
     lda $B6F05E
     sta $7EC05E
     ;fix color used for dark map theme
@@ -551,14 +578,12 @@ load_map_screen:
     sta $7EC0E4
     lda $B6F0E6
     sta $7EC0E6
-    lda $B6F0EC
-    sta $7EC0EC
+
     lda $B6F0F6
     sta $7EC0F6
     lda $B6F0FA
     sta $7EC0FA
-    lda $B6F0FC
-    sta $7EC0FC
+
 
     ; Partially revealed tiles: black color for item dots, door locks
     lda !bank_85_freespace2_start ; this is tied to an address referenced in customize.rs
@@ -1359,7 +1384,7 @@ write_room_name_tiles:
 assert pc() <= !bank_82_freespace2_end
 
 org !bank_85_freespace2_start
-dw $0000  ; Partially revealed tiles palette value: overwrote by customize.rs if using dark theme
+dw $0000  ; partially revealed tiles palette value: overwrote by customize.rs if using dark theme
 
 !bit_offset = $3a
 !bit_offset_round = $3e
@@ -2185,6 +2210,23 @@ draw_sprite:
 .sprite_disabled
     PLA
     BRA .sprite_is_disabled
+    
+pause_hook_alternate_door_colors: ; modifies the palette colors for the mapscreen doors if using alternative door colors.
+    lda !alternative_door_colors
+    and #$00ff
+    beq .skip
+    lda.l !superdoorcolor
+    sta $7ec0fc ; super doors
+    sta $7ec05c
+    lda.l !missiledoorcolor
+    sta $7ec0ee ; missile doors
+    sta $7ec04e
+    lda.l !pbdoorcolor
+    sta $7ec0ec ; pb doors
+    sta $7ec04c 
+.skip   
+    rts
+    
 assert pc() <= !bank_85_freespace3_end
 
 ; Fixes FX for rare bug when entering right-sided door through East Pants Room
