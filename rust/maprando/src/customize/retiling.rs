@@ -60,7 +60,7 @@ pub fn apply_retiling_and_palettes(
 ) -> Result<()> {
     match &palette_theme {
         PaletteTheme::Vanilla => {}
-        PaletteTheme::AreaThemed | PaletteTheme::Scrambled => {
+        PaletteTheme::AreaThemed | PaletteTheme::Scrambled | PaletteTheme::Constant(_) => {
             // Set flag to enable behavior in "Area Palettes.asm":
             rom.write_u16(snes2pc(0x8AC000), 0xF0F0)?;
         }
@@ -202,6 +202,7 @@ pub fn apply_retiling_and_palettes(
                 let mut rng = rand::rngs::StdRng::from_seed(rng_seed);
                 rng.gen_range(0..6)
             }
+            PaletteTheme::Constant(palette_index) => *palette_index as usize,
         };
 
         // Assign room palette (for area-themed palettes)

@@ -78,6 +78,7 @@ pub enum PaletteTheme {
     Vanilla,
     AreaThemed,
     Scrambled,
+    Constant(u8),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

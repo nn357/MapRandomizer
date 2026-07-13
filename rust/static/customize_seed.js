@@ -71,15 +71,15 @@ function swapButtonAssignment(clickedEl) {
 }
 function roomThemingChanged() {
     if (document.getElementById("roomThemingVanilla").checked) {
-        document.getElementById("roomPalettesVanilla").checked = true;
+        document.getElementById("roomPalettes").value = "vanilla";
         document.getElementById("tileTheme").value = "none";
     }
     if (document.getElementById("roomThemingPalettes").checked) {
-        document.getElementById("roomPalettesAreaThemed").checked = true;
+        document.getElementById("roomPalettes").value = "area-themed";
         document.getElementById("tileTheme").value = "none";
     }
     if (document.getElementById("roomThemingTiling").checked) {
-        document.getElementById("roomPalettesVanilla").checked = true;
+        document.getElementById("roomPalettes").value = "vanilla";
         document.getElementById("tileTheme").value = "area_themed";
     }
 }
@@ -117,4 +117,3 @@ window.onload = (event) => {
     updateEnergyTankColor();
     roomThemingChanged();
   };
-  

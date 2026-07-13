@@ -300,6 +300,12 @@ async fn customize_seed(
             "area-themed" => PaletteTheme::AreaThemed,
             "scrambled" => PaletteTheme::Scrambled,
             "vanilla" => PaletteTheme::Vanilla,
+            "crateria" => PaletteTheme::Constant(0),
+            "brinstar" => PaletteTheme::Constant(1),
+            "norfair" => PaletteTheme::Constant(2),
+            "wrecked-ship" => PaletteTheme::Constant(3),
+            "maridia" => PaletteTheme::Constant(4),
+            "tourian" => PaletteTheme::Constant(5),
             _ => panic!("Unexpected palette_theme"),
         },
         tile_theme: if req.tile_theme.0 == "none" {
