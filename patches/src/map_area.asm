@@ -463,18 +463,19 @@ clear_hud_minimap:
 load_area:
     phy
 
-    ;;; Load the new area number (for use in map) into $1F5B
     ldx $07bb      ; x <- room state pointer
     lda $8F0010,x
     tax            ; x <- extra room data pointer
-    lda $B80000,x  ; a <- [extra room data pointer]
-    and #$00FF
-    sta $1F5B
 
     ; load palette theme index
     lda $B8000B,x
     and #$00FF
     sta $1F8A
+
+    ;;; Load the new area number (for use in map) into $1F5B
+    lda $B80000,x  ; a <- [extra room data pointer]
+    and #$00FF
+    sta $1F5B
 
     ; mark area as explored (determinines set of valid area maps to cycle through in pause menu):
     jsl $80818E    ; convert map area to bitmask
