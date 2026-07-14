@@ -2312,9 +2312,9 @@ impl<'a> MapPatcher<'a> {
             (14, rgb(7, 31, 7)),   // Brinstar green (and green doors)
             (10, rgb(29, 0, 0)),   // Norfair red
             (8, rgb(4, 13, 31)),   // Maridia blue
-            (9, color9),   // Wrecked Ship yellow
+            (9, color9),           // Wrecked Ship yellow
             (11, rgb(20, 3, 31)),  // Crateria purple
-            (6, color6),   // Tourian, (and orange doors)
+            (6, color6),           // Tourian, (and orange doors)
             (15, rgb(18, 12, 14)), // Gray door
             (7, rgb(27, 2, 27)),   // Red (pink) door
             (12, rgb(0, 0, 0)),    // Black (door lock shadows covering wall)
