@@ -2304,30 +2304,24 @@ impl<'a> MapPatcher<'a> {
         }
 
         let (color6, color7, color9, color14) = match self.customize_settings.door_theme {
-            DoorTheme::Contrast => {
-                (
-                    rgb(31, 29, 0),
-                    rgb(29, 0, 7), 
-                    rgb(29, 15, 0), 
-                    rgb(1, 30, 22),
-                )
-            }
-            DoorTheme::Vibrant => {
-                (
-                    rgb(30, 12, 0),
-                    rgb(31, 0, 31),
-                    rgb(23, 24, 9),
-                    rgb(16, 31, 16),
-                )
-            }
-            DoorTheme::Vanilla => {
-                (
-                    rgb(29, 15, 0),
-                    rgb(27, 2, 27),
-                    rgb(23, 24, 9),
-                    rgb(7, 31, 7),
-                )
-            }
+            DoorTheme::Contrast => (
+                rgb(31, 29, 0),
+                rgb(29, 0, 7),
+                rgb(29, 15, 0),
+                rgb(1, 30, 22),
+            ),
+            DoorTheme::Vibrant => (
+                rgb(30, 12, 0),
+                rgb(31, 0, 31),
+                rgb(23, 24, 9),
+                rgb(16, 31, 16),
+            ),
+            DoorTheme::Vanilla => (
+                rgb(29, 15, 0),
+                rgb(27, 2, 27),
+                rgb(23, 24, 9),
+                rgb(7, 31, 7),
+            ),
         };
 
         let extended_map_palette: Vec<(u8, u16)> = vec![

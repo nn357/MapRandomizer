@@ -4,14 +4,14 @@ pub mod room_palettes;
 pub mod samus_sprite;
 pub mod vanilla_music;
 
-use anyhow::{bail, Result};
+use anyhow::{Result, bail};
 use hashbrown::HashMap;
 use log::info;
 use std::cmp::min;
 use std::path::Path;
 
 use crate::patch::glowpatch_writer::write_glowpatch;
-use crate::patch::{apply_ips_patch, snes2pc, write_credits_big_char, ExtraRoomData, Rom};
+use crate::patch::{ExtraRoomData, Rom, apply_ips_patch, snes2pc, write_credits_big_char};
 use maprando_game::{GameData, Map, RoomPtr};
 use mosaic::MosaicTheme;
 use retiling::apply_retiling_and_palettes;
