@@ -57,8 +57,6 @@
 ; (to compensate for VRAM decompression being faster): 
 !unpause_black_screen_lag_frames = $dfff07
 
-!alternative_door_colors = $dfff04 ; overwritten by customize.rs 00 = vanilla doors, 01 = alternative
-
 ; crash handler / sub patches variables
 
 !crash_toggles = $80D330 ; overwritten by patch.rs , defined in crash_handle_base.asm
