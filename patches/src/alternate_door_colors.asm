@@ -5,7 +5,7 @@ lorom
 !bank_82_free_space_end = $82FA80
 
 !bank_df_free_space_start = $dfe200 ; must match addresses in customize.rs [these colors may be modifided there]
-!bank_df_free_space_end = $dfe218
+!bank_df_free_space_end = $dfe212
 
 org $82E7D0
     jmp hook_load_tileset
@@ -93,8 +93,5 @@ missile_2:
   dw $5816
 missile_3:
   dw $340D
-dw $019E ; pb door used for pause menu map screen [referenced in map_area.asm, can be overwritten in customize.rs]
-dw $43F0 ; super door used for pause menu map screen [referenced in map_area.asm, can be overwritten in customize.rs]
-dw $7c1f ; missile door used for pause menu map screen [referenced in map_area.asm, can be overwritten in customize.rs]
 
 assert pc() <= !bank_df_free_space_end

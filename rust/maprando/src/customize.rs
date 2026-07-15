@@ -529,27 +529,21 @@ pub fn customize_rom(
 
     match settings.door_theme {
         DoorTheme::Vanilla => {
-            rom.write_u8(snes2pc(0xdfff04), 0)?; // Alternative door colors option false
         }
         DoorTheme::Vibrant => {
             apply_ips_patch(rom, Path::new("../patches/ips/alternate_door_colors.ips"))?;
-            rom.write_u8(snes2pc(0xdfff04), 1)?; // Alternative door colors option set flag
         }
         DoorTheme::Contrast => {
             apply_ips_patch(rom, Path::new("../patches/ips/alternate_door_colors.ips"))?;
-            rom.write_u8(snes2pc(0xdfff04), 1)?; // Alternative door colors option set flag
-            rom.write_u16(snes2pc(0xdfe200), 0x03BF)?; // Alternative power bomb door color
-            rom.write_u16(snes2pc(0xdfe202), 0x0278)?; // Alternative power bomb door color
-            rom.write_u16(snes2pc(0xdfe204), 0x00EC)?; // Alternative power bomb door color
-            rom.write_u16(snes2pc(0xdfe206), 0x5BE1)?; // Alternative super door color 
-            rom.write_u16(snes2pc(0xdfe208), 0x3AA0)?; // Alternative super door color
-            rom.write_u16(snes2pc(0xdfe20a), 0x1DA0)?; // Alternative super door color
-            rom.write_u16(snes2pc(0xdfe20c), 0x1C1D)?; // Alternative missile door color
-            rom.write_u16(snes2pc(0xdfe20e), 0x1033)?; // Alternative missile bomb door color
-            rom.write_u16(snes2pc(0xdfe210), 0x0829)?; // Alternative missile bomb door color
-            rom.write_u16(snes2pc(0xdfe212), 0x03BF)?; // Pause map power bomb door color
-            rom.write_u16(snes2pc(0xdfe214), 0x5BE1)?; // Pause map super door color
-            rom.write_u16(snes2pc(0xdfe216), 0x1C1D)?; // Pause map missile door color
+            rom.write_u16(snes2pc(0xdfe200), 0x03BF)?; // high contrast power bomb door color
+            rom.write_u16(snes2pc(0xdfe202), 0x0278)?; // high contrast power bomb door color
+            rom.write_u16(snes2pc(0xdfe204), 0x00EC)?; // high contrast power bomb door color
+            rom.write_u16(snes2pc(0xdfe206), 0x5BE1)?; // high contrast super door color 
+            rom.write_u16(snes2pc(0xdfe208), 0x3AA0)?; // high contrast super door color
+            rom.write_u16(snes2pc(0xdfe20a), 0x1DA0)?; // high contrast super door color
+            rom.write_u16(snes2pc(0xdfe20c), 0x1C1D)?; // high contrast missile door color
+            rom.write_u16(snes2pc(0xdfe20e), 0x1033)?; // high contrast missile bomb door color
+            rom.write_u16(snes2pc(0xdfe210), 0x0829)?; // high contrast missile bomb door color
         }
     }
 
