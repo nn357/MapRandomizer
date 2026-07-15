@@ -559,6 +559,8 @@ load_map_screen:
     sta $7EC0FA
     lda $B6F0FC
     sta $7EC0FC
+    lda $b6f04c
+    sta $7ec0ec ; pb doors
 
     ; Partially revealed tiles: black color for item dots, door locks
     lda !bank_85_freespace2_start ; this is tied to an address referenced in customize.rs

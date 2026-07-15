@@ -4,14 +4,14 @@ pub mod room_palettes;
 pub mod samus_sprite;
 pub mod vanilla_music;
 
-use anyhow::{Result, bail};
+use anyhow::{bail, Result};
 use hashbrown::HashMap;
 use log::info;
 use std::cmp::min;
 use std::path::Path;
 
 use crate::patch::glowpatch_writer::write_glowpatch;
-use crate::patch::{ExtraRoomData, Rom, apply_ips_patch, snes2pc, write_credits_big_char};
+use crate::patch::{apply_ips_patch, snes2pc, write_credits_big_char, ExtraRoomData, Rom};
 use maprando_game::{GameData, Map, RoomPtr};
 use mosaic::MosaicTheme;
 use retiling::apply_retiling_and_palettes;
@@ -528,8 +528,7 @@ pub fn customize_rom(
     )?;
 
     match settings.door_theme {
-        DoorTheme::Vanilla => {
-        }
+        DoorTheme::Vanilla => {}
         DoorTheme::Vibrant => {
             apply_ips_patch(rom, Path::new("../patches/ips/alternate_door_colors.ips"))?;
         }
@@ -538,7 +537,7 @@ pub fn customize_rom(
             rom.write_u16(snes2pc(0xdfe200), 0x03BF)?; // high contrast power bomb door color
             rom.write_u16(snes2pc(0xdfe202), 0x0278)?; // high contrast power bomb door color
             rom.write_u16(snes2pc(0xdfe204), 0x00EC)?; // high contrast power bomb door color
-            rom.write_u16(snes2pc(0xdfe206), 0x5BE1)?; // high contrast super door color 
+            rom.write_u16(snes2pc(0xdfe206), 0x5BE1)?; // high contrast super door color
             rom.write_u16(snes2pc(0xdfe208), 0x3AA0)?; // high contrast super door color
             rom.write_u16(snes2pc(0xdfe20a), 0x1DA0)?; // high contrast super door color
             rom.write_u16(snes2pc(0xdfe20c), 0x1C1D)?; // high contrast missile door color

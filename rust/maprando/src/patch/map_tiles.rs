@@ -2304,39 +2304,43 @@ impl<'a> MapPatcher<'a> {
         }
 
         let (color6, color7, color9, color14) = match self.customize_settings.door_theme {
-            DoorTheme::Vanilla => (
-                rgb(29, 15, 0), // palette 6
-                rgb(27, 2, 27), // palette 7
-                rgb(23, 24, 9), // palette 9
-                rgb(7, 31, 7),  // palette 14
-            ),
-
-            DoorTheme::Vibrant => (
-                rgb(29, 15, 0),  // palette 6
-                rgb(31, 1, 31),  // palette 7 (0x7C1F)
-                rgb(23, 24, 9),  // palette 9
-                rgb(16, 31, 16), // palette 14 (0x43F0)
-            ),
-
-            DoorTheme::Contrast => (
-                rgb(23, 24, 9), // palette 6 (swapped with 9)
-                rgb(29, 0, 7),  // palette 7 (0x1C1D)
-                rgb(29, 15, 0), // palette 9 (swapped with 6)
-                rgb(1, 31, 22), // palette 14 (0x5BE1)
-            ),
+            DoorTheme::Contrast => {
+                (
+                    rgb(31, 29, 0),
+                    rgb(29, 0, 7), 
+                    rgb(29, 15, 0), 
+                    rgb(1, 30, 22),
+                )
+            }
+            DoorTheme::Vibrant => {
+                (
+                    rgb(30, 12, 0),
+                    rgb(31, 0, 31),
+                    rgb(23, 24, 9),
+                    rgb(16, 31, 16),
+                )
+            }
+            DoorTheme::Vanilla => {
+                (
+                    rgb(29, 15, 0),
+                    rgb(27, 2, 27),
+                    rgb(23, 24, 9),
+                    rgb(7, 31, 7),
+                )
+            }
         };
 
         let extended_map_palette: Vec<(u8, u16)> = vec![
             (14, color14),         // Brinstar green (and green doors)
             (10, rgb(29, 0, 0)),   // Norfair red
             (8, rgb(4, 13, 31)),   // Maridia blue
-            (9, color9),           // Wrecked Ship yellow, swapped palette 6 in high contrast doors.
+            (9, color9),           // Wrecked Ship yellow
             (11, rgb(20, 3, 31)),  // Crateria purple
-            (6, color6), // Tourian, (and orange doors) - swapped with pallete 9 in high contrast doors.
+            (6, color6),           // Tourian (and orange doors)
             (15, rgb(18, 12, 14)), // Gray door
-            (7, color7), // Red (pink) door (defined above depending on door theme)
-            (12, rgb(0, 0, 0)), // Black (door lock shadows covering wall)
-            (5, rgb(0, 0, 0)), // Black (door lock shadows covering air)
+            (7, color7),           // Red (pink) door
+            (12, rgb(0, 0, 0)),    // Black (door lock shadows covering wall)
+            (5, rgb(0, 0, 0)),     // Black (door lock shadows covering air)
             (13, rgb(31, 31, 31)), // White (item dots)
         ];
         // Dotted grid lines
