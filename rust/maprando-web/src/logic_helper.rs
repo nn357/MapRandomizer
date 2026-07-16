@@ -2,6 +2,7 @@ use anyhow::Result;
 use askama::Template;
 use glob::glob;
 use hashbrown::{HashMap, HashSet};
+use rustc_hash::FxHashMap; // highly efficient for coordinate map lookups
 use itertools::Itertools;
 use json::JsonValue;
 use log::warn;
@@ -28,7 +29,7 @@ use maprando_game::{
     TECH_ID_CAN_WALLJUMP, TechId, VertexKey, parse_speed_booster,
 };
 use maprando_logic::{GlobalState, Inventory};
-use std::{io::Cursor, path::PathBuf};
+use std::{io::Cursor, path::PathBuf, rc::Rc};
 
 use super::VersionInfo;
 
@@ -68,7 +69,7 @@ struct RoomStrat {
 
 #[derive(Template, Clone)]
 #[template(path = "logic/room.html")]
-struct RoomTemplate<'a> {
+pub struct RoomTemplate<'a> {
     version_info: VersionInfo,
     preset_data: &'a PresetData,
     room_id: usize,
@@ -79,7 +80,7 @@ struct RoomTemplate<'a> {
     area: String,
     room_diagram_path: String,
     nodes: Vec<(usize, String)>,
-    strats: Vec<RoomStrat>,
+    strats: Vec<Rc<RoomStrat>>, // Using Rc to avoid deep cloning string vectors
     strat_videos: &'a HashMap<(RoomId, StratId), Vec<StratVideo>>,
     room_json: String,
     video_storage_url: String,
@@ -87,7 +88,7 @@ struct RoomTemplate<'a> {
 
 #[derive(Template, Clone)]
 #[template(path = "logic/tech.html")]
-struct TechTemplate<'a> {
+pub struct TechTemplate<'a> {
     version_info: VersionInfo,
     preset_data: &'a PresetData,
     tech_id: TechId,
@@ -98,7 +99,7 @@ struct TechTemplate<'a> {
     tech_dependencies: String,
     tech_difficulty_idx: usize,
     tech_difficulty_name: String,
-    strats: Vec<RoomStrat>,
+    strats: Vec<Rc<RoomStrat>>, // Using Rc to avoid deep cloning string vectors
     strat_videos: &'a HashMap<(RoomId, StratId), Vec<StratVideo>>,
     tech_video_id: Option<usize>,
     video_storage_url: String,
@@ -106,7 +107,7 @@ struct TechTemplate<'a> {
 
 #[derive(Template, Clone)]
 #[template(path = "logic/notable.html")]
-struct NotableTemplate<'a> {
+pub struct NotableTemplate<'a> {
     version_info: VersionInfo,
     preset_data: &'a PresetData,
     room_id: RoomId,
@@ -116,7 +117,7 @@ struct NotableTemplate<'a> {
     notable_note: String,
     notable_difficulty_idx: usize,
     notable_difficulty_name: String,
-    strats: Vec<RoomStrat>,
+    strats: Vec<Rc<RoomStrat>>, // Using Rc to avoid deep cloning string vectors
     strat_videos: &'a HashMap<(RoomId, StratId), Vec<StratVideo>>,
     notable_video_id: Option<usize>,
     video_storage_url: String,
@@ -124,21 +125,21 @@ struct NotableTemplate<'a> {
 
 #[derive(Template, Clone)]
 #[template(path = "logic/strat_page.html")]
-struct StratTemplate<'a> {
+pub struct StratTemplate<'a> {
     version_info: VersionInfo,
     room_id: usize,
     room_name: String,
     room_name_url_encoded: String,
     room_diagram_path: String,
     strat_name: String,
-    strat: RoomStrat,
+    strat: Rc<RoomStrat>, // Wrap in Rc to prevent large heap copies
     strat_videos: &'a HashMap<(RoomId, StratId), Vec<StratVideo>>,
     video_storage_url: String,
 }
 
 #[derive(Template)]
 #[template(path = "logic/logic.html")]
-struct LogicIndexTemplate<'a> {
+pub struct LogicIndexTemplate<'a> {
     version_info: VersionInfo,
     rooms: &'a [RoomTemplate<'a>],
     tech: &'a [TechTemplate<'a>],
@@ -148,16 +149,24 @@ struct LogicIndexTemplate<'a> {
     room_polygons: &'a [RoomPolygon],
 }
 
-#[derive(Default)]
-pub struct LogicData {
-    pub index_html: String,                                 // Logic index page
-    pub room_html: HashMap<RoomId, String>,                 // Map from room ID to rendered HTML.
-    pub tech_html: HashMap<TechId, String>,                 // Map from tech ID to rendered HTML.
-    pub tech_strat_counts: HashMap<TechId, usize>, // Map from tech ID to strat count using that tech.
-    pub notable_html: HashMap<(RoomId, NotableId), String>, // Map from room/notable ID to rendered HTML.
-    pub notable_strat_counts: HashMap<(RoomId, NotableId), usize>, // Map from tech ID to strat count using that tech.
-    pub strat_html: HashMap<(RoomId, NodeId, NodeId, StratId), String>, // Map from (room ID, from node ID, to node ID, strat ID) to rendered HTML.
-    pub vanilla_map_png: Vec<u8>, // PNG of vanilla map, to show on logic index page
+// LogicData now keeps structural data for fast, on-demand HTML rendering
+// rather than locking gigabytes of static HTML strings in heap memory.
+pub struct LogicData<'a> {
+    pub version_info: VersionInfo,
+    pub preset_data: &'a PresetData,
+    pub game_data: &'a GameData,
+    pub video_storage_url: String,
+    pub rooms: Vec<RoomTemplate<'a>>,
+    pub tech: Vec<TechTemplate<'a>>,
+    pub notables: Vec<NotableTemplate<'a>>,
+    pub room_map: HashMap<RoomId, usize>, // maps ID to index in the vectors for O(1) rendering lookups
+    pub tech_map: HashMap<TechId, usize>,
+    pub notable_map: HashMap<(RoomId, NotableId), usize>,
+    pub strat_map: HashMap<(RoomId, NodeId, NodeId, StratId), (usize, usize)>, // maps to (room_index, strat_index)
+    pub tech_strat_counts: HashMap<TechId, usize>,
+    pub notable_strat_counts: HashMap<(RoomId, NotableId), usize>,
+    pub vanilla_map_png: Vec<u8>,
+    pub room_polygons: Vec<RoomPolygon>,
 }
 
 fn list_room_diagram_files() -> HashMap<usize, String> {
@@ -198,8 +207,6 @@ fn extract_tech_rec(req: &JsonValue, tech: &mut HashSet<usize>, game_data: &Game
     if req.is_string() {
         let value = req.as_str().unwrap();
         if let Some(tech_id) = game_data.tech_id_by_name.get(value) {
-            // Skipping tech dependencies, so that only techs that explicitly appear in a strat (or via a helper)
-            // will show up under the corresponding tech page.
             let tech_idx = game_data.tech_isv.index_by_key[tech_id];
             tech.insert(tech_idx);
         } else if let Some(helper_json) = game_data.helper_json_map.get(value) {
@@ -277,10 +284,6 @@ fn make_tech_templates<'a>(
             let to_node_json = &game_data.node_json_map[&(room_id, to_node_id)];
             let mut tech_set: HashSet<usize> = HashSet::new();
 
-            // TODO: think about if we could automate extracting tech requirements, as this
-            // code is error-prone and awkward to maintain, as it can easily fall out of sync
-            // with the requirements actually used in the randomizer logic. At the very least,
-            // it could probably be extracted from the results from `get_cross_room_reqs`` below:
             for req in strat_json["requires"].members() {
                 extract_tech_rec(req, &mut tech_set, game_data);
             }
@@ -473,7 +476,7 @@ fn make_tech_templates<'a>(
         }
     }
 
-    let mut room_strat_map: HashMap<(RoomId, NodeId, NodeId, String), &RoomStrat> = HashMap::new();
+    let mut room_strat_map: HashMap<(RoomId, NodeId, NodeId, String), &Rc<RoomStrat>> = HashMap::new();
     for template in room_templates {
         for strat in &template.strats {
             room_strat_map.insert(
@@ -502,14 +505,14 @@ fn make_tech_templates<'a>(
             })
             .collect();
         let tech_dependencies = tech_dependency_names.join(", ");
-        let mut strats: Vec<RoomStrat> = vec![];
+        let mut strats: Vec<Rc<RoomStrat>> = vec![];
         let tech_data = &preset_data.tech_data_map[&tech_id];
         let difficulty_name = tech_data.difficulty.clone();
         let difficulty_idx = preset_data.difficulty_levels.index_by_key[&difficulty_name];
 
         for strat_ids in tech_ids {
-            if room_strat_map.contains_key(strat_ids) {
-                strats.push(room_strat_map[strat_ids].clone());
+            if let Some(strat_ref) = room_strat_map.get(strat_ids) {
+                strats.push(Rc::clone(strat_ref));
             }
         }
         strats.sort_by_key(|s| {
@@ -574,7 +577,7 @@ fn make_notable_templates<'a>(
         }
     }
 
-    let mut room_strat_map: HashMap<(RoomId, NodeId, NodeId, String), &RoomStrat> = HashMap::new();
+    let mut room_strat_map: HashMap<(RoomId, NodeId, NodeId, String), &Rc<RoomStrat>> = HashMap::new();
     for template in room_templates {
         for strat in &template.strats {
             room_strat_map.insert(
@@ -603,12 +606,12 @@ fn make_notable_templates<'a>(
                 panic!("No notable data found for room ID {room_id} notable ID {notable_id}")
             });
         let difficulty_name = &notable_data.difficulty;
-        let mut strats: Vec<RoomStrat> = vec![];
+        let mut strats: Vec<Rc<RoomStrat>> = vec![];
         let difficulty_idx = preset_data.difficulty_levels.index_by_key[difficulty_name];
 
         for ids in ids_set {
-            if room_strat_map.contains_key(ids) {
-                strats.push(room_strat_map[ids].clone());
+            if let Some(strat_ref) = room_strat_map.get(ids) {
+                strats.push(Rc::clone(strat_ref));
             }
         }
         strats.sort_by_key(|s| {
@@ -661,7 +664,6 @@ fn get_strat_difficulty(
     let key = (room_id, from_node_id, to_node_id, strat_name.clone());
     if let Some(links) = links_by_ids.get(&key) {
         for link in links {
-            // TODO: consider some less convoluted way to convert between the two difficulty indices.
             let difficulty_idx = if link.difficulty as usize == preset_data.difficulty_tiers.len() {
                 preset_data.difficulty_levels.keys.len() - 1
             } else {
@@ -688,7 +690,7 @@ fn make_room_template<'a>(
     video_storage_url: &str,
     version_info: &VersionInfo,
 ) -> RoomTemplate<'a> {
-    let mut room_strats: Vec<RoomStrat> = vec![];
+    let mut room_strats: Vec<Rc<RoomStrat>> = vec![];
     let room_id = room_json["id"].as_usize().unwrap();
     let room_name = room_json["name"].as_str().unwrap().to_string();
     let mut node_name_map: HashMap<usize, String> = HashMap::new();
@@ -710,7 +712,6 @@ fn make_room_template<'a>(
         let to_node_id = strat_json["link"][1].as_usize().unwrap();
         let strat_name = strat_json["name"].as_str().unwrap().to_string();
         if strat_name.starts_with("Base (") {
-            // Ignore internal strats for unlocking doors, etc.
             continue;
         }
         let difficulty_idx = get_strat_difficulty(
@@ -822,7 +823,7 @@ fn make_room_template<'a>(
             difficulty_idx,
             difficulty_name,
         };
-        room_strats.push(strat);
+        room_strats.push(Rc::new(strat));
     }
 
     let twin_room_id = match room_id {
@@ -858,7 +859,7 @@ fn make_room_template<'a>(
 
 fn make_strat_template<'a>(
     room: &RoomTemplate<'a>,
-    strat: &RoomStrat,
+    strat: &Rc<RoomStrat>,
     video_storage_url: &str,
     version_info: &VersionInfo,
     game_data: &'a GameData,
@@ -870,15 +871,13 @@ fn make_strat_template<'a>(
         room_name_url_encoded: room.room_name_url_encoded.clone(),
         room_diagram_path: room.room_diagram_path.clone(),
         strat_name: strat.strat_name.clone(),
-        strat: strat.clone(),
+        strat: Rc::clone(strat),
         strat_videos: &game_data.strat_videos,
         video_storage_url: video_storage_url.to_string(),
     }
 }
 
 fn get_vanilla_randomization(vanilla_map: &Map) -> Randomization {
-    // For now we're not using the actual vanilla item placement,
-    // since we're only using this to draw the map.
     Randomization {
         objectives: vec![
             Objective::Kraid,
@@ -902,10 +901,11 @@ fn get_vanilla_randomization(vanilla_map: &Map) -> Randomization {
     }
 }
 
-struct RoomPolygon {
-    room_id: usize,
-    room_name: String,
-    svg_path: String,
+#[derive(Clone)]
+pub struct RoomPolygon {
+    pub room_id: usize,
+    pub room_name: String,
+    pub svg_path: String,
 }
 
 #[derive(Default)]
@@ -918,7 +918,7 @@ type Point = (i32, i32);
 
 #[derive(Default)]
 struct PolygonBuffer {
-    edges: HashMap<(Point, Point), i32>,
+    edges: FxHashMap<(Point, Point), i32>, // Using FxHashMap to lower allocation footprint
 }
 
 impl PolygonBuffer {
@@ -953,7 +953,7 @@ impl PolygonBuffer {
 
     fn extract_path(&mut self) -> Option<Vec<Point>> {
         let e = self.edges.keys().next()?;
-        let p0 = e.0;
+        let p0 = *e.0;
         let mut p = p0;
         let mut out = vec![p0];
         'outer: loop {
@@ -1024,7 +1024,6 @@ fn get_vanilla_map_data(
                     continue;
                 }
                 if room.room_id == 224 && y == 0 {
-                    // Skip the top tile of Tourian First Room since it overlaps with Statues Room.
                     continue;
                 }
                 let x = x as i32;
@@ -1063,18 +1062,16 @@ fn get_vanilla_map_data(
     Ok(VanillaMapData { png, room_polygons })
 }
 
-impl LogicData {
+impl<'a> LogicData<'a> {
     pub fn new(
-        game_data: &GameData,
-        preset_data: &PresetData,
+        game_data: &'a GameData,
+        preset_data: &'a PresetData,
         version_info: &VersionInfo,
         video_storage_url: &str,
         vanilla_map: &Map,
-    ) -> Result<LogicData> {
-        let mut out = LogicData::default();
+    ) -> Result<LogicData<'a>> {
         let vanilla_map_data =
             get_vanilla_map_data(vanilla_map, game_data, &preset_data.default_preset)?;
-        out.vanilla_map_png = vanilla_map_data.png;
         let room_diagram_listing = list_room_diagram_files();
         let mut room_templates: Vec<RoomTemplate> = vec![];
 
@@ -1105,8 +1102,6 @@ impl LogicData {
         let mut all_links = game_data.all_links();
         for (i, link) in all_links.iter_mut().enumerate() {
             if i >= game_data.links.len() {
-                // Hack to set the correct difficulty for G-mode regain mobility strats.
-                // TODO: come up with a cleaner solution for this.
                 link.difficulty = get_link_difficulty(link, game_data, preset_data, &global);
             }
             let VertexKey {
@@ -1130,8 +1125,10 @@ impl LogicData {
                 .push(link.clone());
         }
 
+        let mut room_map = HashMap::new();
+        let mut strat_map = HashMap::new();
+
         for (_, room_json) in game_data.room_json_map.iter() {
-            let room_id = room_json["id"].as_usize().unwrap();
             let template = make_room_template(
                 room_json,
                 &room_diagram_listing,
@@ -1142,31 +1139,17 @@ impl LogicData {
                 video_storage_url,
                 version_info,
             );
-            let html = template.clone().render().unwrap();
-            out.room_html.insert(room_id, html);
-            room_templates.push(template.clone());
-
-            for strat in &template.strats {
-                let strat_template = make_strat_template(
-                    &template,
-                    strat,
-                    video_storage_url,
-                    version_info,
-                    game_data,
-                );
-                let strat_html = strat_template.render().unwrap();
-                out.strat_html.insert(
-                    (
-                        room_id,
-                        strat.from_node_id,
-                        strat.to_node_id,
-                        strat.strat_id,
-                    ),
-                    strat_html,
-                );
-            }
+            room_templates.push(template);
         }
         room_templates.sort_by_key(|x| (x.area.clone(), x.room_name.clone()));
+
+        // Build indexes for O(1) rendering lookups
+        for (r_idx, r) in room_templates.iter().enumerate() {
+            room_map.insert(r.room_id, r_idx);
+            for (s_idx, s) in r.strats.iter().enumerate() {
+                strat_map.insert((r.room_id, s.from_node_id, s.to_node_id, s.strat_id), (r_idx, s_idx));
+            }
+        }
 
         let tech_templates = make_tech_templates(
             game_data,
@@ -1176,19 +1159,17 @@ impl LogicData {
             video_storage_url,
             version_info,
         );
-        for template in &tech_templates {
-            let html = template.clone().render().unwrap();
+
+        let mut tech_strat_counts = HashMap::new();
+        let mut tech_map = HashMap::new();
+        for (t_idx, template) in tech_templates.iter().enumerate() {
             let strat_count = template
                 .strats
                 .iter()
                 .filter(|x| x.difficulty_idx <= template.tech_difficulty_idx)
                 .count();
-            // if strat_count == 0 {
-            //     warn!("Tech {} ({}) has no strats in its assigned difficulty {}",
-            //         template.tech_id, template.tech_name, template.tech_difficulty_name);
-            // }
-            out.tech_strat_counts.insert(template.tech_id, strat_count);
-            out.tech_html.insert(template.tech_id, html);
+            tech_strat_counts.insert(template.tech_id, strat_count);
+            tech_map.insert(template.tech_id, t_idx);
         }
 
         let notable_templates = make_notable_templates(
@@ -1199,8 +1180,10 @@ impl LogicData {
             video_storage_url,
             version_info,
         );
-        for template in &notable_templates {
-            let html = template.clone().render().unwrap();
+
+        let mut notable_strat_counts = HashMap::new();
+        let mut notable_map = HashMap::new();
+        for (n_idx, template) in notable_templates.iter().enumerate() {
             let strat_count = template
                 .strats
                 .iter()
@@ -1216,22 +1199,63 @@ impl LogicData {
                     template.notable_difficulty_name
                 );
             }
-            out.notable_strat_counts
-                .insert((template.room_id, template.notable_id), strat_count);
-            out.notable_html
-                .insert((template.room_id, template.notable_id), html);
+            notable_strat_counts.insert((template.room_id, template.notable_id), strat_count);
+            notable_map.insert((template.room_id, template.notable_id), n_idx);
         }
 
-        let index_template = LogicIndexTemplate {
+        Ok(LogicData {
             version_info: version_info.clone(),
-            rooms: &room_templates,
-            tech: &tech_templates,
-            _notables: &notable_templates,
-            area_order: &game_data.area_order,
-            tech_difficulties: preset_data.difficulty_levels.keys.clone(),
-            room_polygons: &vanilla_map_data.room_polygons,
+            preset_data,
+            game_data,
+            video_storage_url: video_storage_url.to_string(),
+            rooms: room_templates,
+            tech: tech_templates,
+            notables: notable_templates,
+            room_map,
+            tech_map,
+            notable_map,
+            strat_map,
+            tech_strat_counts,
+            notable_strat_counts,
+            vanilla_map_png: vanilla_map_data.png,
+            room_polygons: vanilla_map_data.room_polygons,
+        })
+    }
+
+    // Lazy, on-demand HTML renderers to be called in your web routing endpoints
+    pub fn render_index(&self) -> String {
+        let index_template = LogicIndexTemplate {
+            version_info: self.version_info.clone(),
+            rooms: &self.rooms,
+            tech: &self.tech,
+            _notables: &self.notables,
+            area_order: &self.game_data.area_order,
+            tech_difficulties: self.preset_data.difficulty_levels.keys.clone(),
+            room_polygons: &self.room_polygons,
         };
-        out.index_html = index_template.render().unwrap();
-        Ok(out)
+        index_template.render().unwrap()
+    }
+
+    pub fn render_room(&self, room_id: RoomId) -> Option<String> {
+        let idx = *self.room_map.get(&room_id)?;
+        self.rooms[idx].render().ok()
+    }
+
+    pub fn render_tech(&self, tech_id: TechId) -> Option<String> {
+        let idx = *self.tech_map.get(&tech_id)?;
+        self.tech[idx].render().ok()
+    }
+
+    pub fn render_notable(&self, room_id: RoomId, notable_id: NotableId) -> Option<String> {
+        let idx = *self.notable_map.get(&(room_id, notable_id))?;
+        self.notables[idx].render().ok()
+    }
+
+    pub fn render_strat(&self, room_id: RoomId, from_node: NodeId, to_node: NodeId, strat_id: StratId) -> Option<String> {
+        let (r_idx, s_idx) = *self.strat_map.get(&(room_id, from_node, to_node, strat_id))?;
+        let room = &self.rooms[r_idx];
+        let strat = &room.strats[s_idx];
+        let strat_template = make_strat_template(room, strat, &self.video_storage_url, &self.version_info, self.game_data);
+        strat_template.render().ok()
     }
 }
