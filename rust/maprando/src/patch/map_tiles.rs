@@ -2307,8 +2307,8 @@ impl<'a> MapPatcher<'a> {
             DoorTheme::Contrast => (
                 rgb(31, 29, 0),
                 rgb(29, 0, 7),
-                rgb(29, 15, 0),
-                rgb(1, 30, 22),
+                rgb(31, 17, 0),
+                rgb(1, 31, 22),
             ),
             DoorTheme::Vibrant => (
                 rgb(30, 12, 0),
@@ -2317,10 +2317,10 @@ impl<'a> MapPatcher<'a> {
                 rgb(16, 31, 16),
             ),
             DoorTheme::Vanilla => (
-                rgb(29, 15, 0),
-                rgb(27, 2, 27),
+                rgb(31, 17, 0),
+                rgb(27, 2, 18),
                 rgb(23, 24, 9),
-                rgb(7, 31, 7),
+                rgb(9, 31, 5),
             ),
         };
 
