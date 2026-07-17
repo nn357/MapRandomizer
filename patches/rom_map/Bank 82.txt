@@ -1,3 +1,4 @@
+B5E8 - B62B: ; vanilla_bugfixes.asm [boots ui fix, overwrites unused vanilla instruction.]
 F70F - F808: ; map_area.asm
 F810 - F827: ; crash_handle_springball.asm
 F830 - F9DE: ; disableable_etanks.asm

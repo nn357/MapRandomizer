@@ -206,7 +206,7 @@ A7E4 - A7E6: ; map_area.asm
 A802 - A804: ; map_area.asm
 A820 - A822: ; pause_menu_objectives.asm
 A83E - A840: ; pause_menu_objectives.asm
-AC03 - AC07: ; vanilla_bugfixes.asm
+AC00 - AC15: ; vanilla_bugfixes.asm
 AC5A - AC5C: ; disableable_etanks.asm
 AC7C - AC7E: ; reserve_backward_fill.asm
 AC87 - AC8A: ; reserve_backward_fill.asm
@@ -238,6 +238,7 @@ B51E - B520: ; split_speed.asm
 B545 - B547: ; split_speed.asm
 B56B - B56F: ; disableable_etanks.asm
 B585 - B587: ; disable_major_glitches.asm
+B5E8 - B62B: ; vanilla_bugfixes.asm
 B672 - B676: ; map_area.asm
 B924 - B92F: ; fast_pause_menu.asm
 B9A0 - B9C7: ; fast_pause_menu.asm
