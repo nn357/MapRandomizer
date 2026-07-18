@@ -3,3 +3,5 @@
   follow-up debugging after a reported regression: investigate and explain the
   likely cause first, but do not apply a speculative fix or design change until
   the user confirms that specific change.
+- Unless the user specifies otherwise, any tests added to verify changes should
+  be treated as temporary and removed before completing the task.

@@ -77,6 +77,7 @@ pub enum MusicSettings {
 pub enum PaletteTheme {
     Vanilla,
     AreaThemed,
+    AreaShuffled,
     Scrambled,
     Constant(u8),
 }

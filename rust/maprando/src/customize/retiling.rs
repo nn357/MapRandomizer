@@ -8,11 +8,20 @@ use crate::{
 use anyhow::{Context, Result};
 use hashbrown::HashMap;
 use maprando_game::{DoorPtr, GameData, Map, RoomPtr, RoomStateIdx};
-use rand::{Rng, SeedableRng};
+use rand::{Rng, SeedableRng, seq::SliceRandom};
 
 use super::TileTheme;
 
 const BPS_PATCH_PATH: &str = "../patches/mosaic";
+
+fn get_area_palette_mapping(random_seed: u32) -> [usize; 6] {
+    let mut rng_seed = [0u8; 32];
+    rng_seed[..4].copy_from_slice(&random_seed.to_le_bytes());
+    let mut rng = rand::rngs::StdRng::from_seed(rng_seed);
+    let mut mapping = [0, 1, 2, 3, 4, 5];
+    mapping.shuffle(&mut rng);
+    mapping
+}
 
 fn apply_bps_patch(rom: &mut Rom, orig_rom: &Rom, filename: &str) -> Result<()> {
     let path = Path::new(BPS_PATCH_PATH).join(filename);
@@ -60,7 +69,10 @@ pub fn apply_retiling_and_palettes(
 ) -> Result<()> {
     match &palette_theme {
         PaletteTheme::Vanilla => {}
-        PaletteTheme::AreaThemed | PaletteTheme::Scrambled | PaletteTheme::Constant(_) => {
+        PaletteTheme::AreaThemed
+        | PaletteTheme::AreaShuffled
+        | PaletteTheme::Scrambled
+        | PaletteTheme::Constant(_) => {
             // Set flag to enable behavior in "Area Palettes.asm":
             rom.write_u16(snes2pc(0x8AC000), 0xF0F0)?;
         }
@@ -111,6 +123,7 @@ pub fn apply_retiling_and_palettes(
     }
 
     let random_seed = u32::from_le_bytes(rom.read_n(snes2pc(0xdfff00), 4)?.try_into()?);
+    let area_palette_mapping = get_area_palette_mapping(random_seed);
 
     apply_bps_patch(rom, orig_rom, "tilesets.bps")?;
 
@@ -195,6 +208,7 @@ pub fn apply_retiling_and_palettes(
                     area
                 }
             }
+            PaletteTheme::AreaShuffled => area_palette_mapping[area],
             PaletteTheme::Scrambled => {
                 let seed = random_seed ^ (room_ptr as u32);
                 let mut rng_seed = [0u8; 32];

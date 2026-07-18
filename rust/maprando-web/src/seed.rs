@@ -298,6 +298,7 @@ async fn customize_seed(
         room_names: req.room_names.0,
         palette_theme: match req.room_palettes.0.as_str() {
             "area-themed" => PaletteTheme::AreaThemed,
+            "area-shuffled" => PaletteTheme::AreaShuffled,
             "scrambled" => PaletteTheme::Scrambled,
             "vanilla" => PaletteTheme::Vanilla,
             "crateria" => PaletteTheme::Constant(0),
