@@ -72,6 +72,7 @@ pub fn apply_retiling_and_palettes(
     let statues_hallway_tiling = match (statues_hallway_tiling, theme) {
         (StatuesHallwayTiling::Disabled, _) => false,
         (StatuesHallwayTiling::Default, TileTheme::AreaThemed) => true,
+        (StatuesHallwayTiling::Default, TileTheme::AreaShuffled) => true,
         (StatuesHallwayTiling::Default, TileTheme::Scrambled) => true,
         (StatuesHallwayTiling::Default, _) => false,
         (StatuesHallwayTiling::Enabled, _) => true,
@@ -117,10 +118,11 @@ pub fn apply_retiling_and_palettes(
     let mut rng_seed = [0u8; 32];
     rng_seed[..4].copy_from_slice(&random_seed.to_le_bytes());
     let mut rng = rand::rngs::StdRng::from_seed(rng_seed);
+    // These mappings are only used if their corresponding area-shuffled mode is enabled.
     let mut area_palette_mapping = [0, 1, 2, 3, 4, 5];
-
-    // Shuffled area palette mapping: only used if area-shuffled palettes are enabled.
     area_palette_mapping.shuffle(&mut rng);
+    let mut area_tile_mapping = [0, 1, 2, 3, 4, 5];
+    area_tile_mapping.shuffle(&mut rng);
 
     apply_bps_patch(rom, orig_rom, "tilesets.bps")?;
 
@@ -150,11 +152,16 @@ pub fn apply_retiling_and_palettes(
                     s.clone()
                 }
             }
-            TileTheme::AreaThemed => {
+            TileTheme::AreaThemed | TileTheme::AreaShuffled => {
                 if statues_hallway_tiling && tourian_neighbors.contains(&room_idx) {
                     "StatuesHallway".to_string()
                 } else {
-                    match (area, sub_area, sub_sub_area) {
+                    let theme_area = if *theme == TileTheme::AreaShuffled {
+                        area_tile_mapping[area]
+                    } else {
+                        area
+                    };
+                    match (theme_area, sub_area, sub_sub_area) {
                         (0, 0, _) => "OuterCrateria",
                         (0, 1, 0) => "InnerCrateria",
                         (0, 1, 1) => "BlueBrinstar",
@@ -171,7 +178,7 @@ pub fn apply_retiling_and_palettes(
                         (5, 0, _) => "MechaTourian",
                         (5, 1, _) => "MetroidHabitat",
                         _ => panic!(
-                            "unexpected area/subarea/subsubarea combination: ({area}, {sub_area}, {sub_sub_area})"
+                            "unexpected area/subarea/subsubarea combination: ({theme_area}, {sub_area}, {sub_sub_area})"
                         ),
                     }
                     .to_string()
@@ -221,6 +228,8 @@ pub fn apply_retiling_and_palettes(
         theme_name_map.insert(room_ptr, theme_name);
     }
 
+    // This patch keys effects off the unshuffled map area, so it would be incorrect for
+    // AreaShuffled even though that mode otherwise follows AreaThemed behavior.
     if *theme == TileTheme::AreaThemed {
         apply_ips_patch(rom, Path::new("../patches/ips/mosaic_fx_fix.ips"))?;
     }

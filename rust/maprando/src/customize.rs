@@ -86,6 +86,7 @@ pub enum PaletteTheme {
 pub enum TileTheme {
     Vanilla,
     AreaThemed,
+    AreaShuffled,
     Scrambled,
     Constant(String),
 }

@@ -315,6 +315,8 @@ async fn customize_seed(
             TileTheme::Scrambled
         } else if req.tile_theme.0 == "area_themed" {
             TileTheme::AreaThemed
+        } else if req.tile_theme.0 == "area_shuffled" {
+            TileTheme::AreaShuffled
         } else {
             TileTheme::Constant(req.tile_theme.0.to_string())
         },
