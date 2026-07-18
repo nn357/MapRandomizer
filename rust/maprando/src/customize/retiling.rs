@@ -14,15 +14,6 @@ use super::TileTheme;
 
 const BPS_PATCH_PATH: &str = "../patches/mosaic";
 
-fn get_area_palette_mapping(random_seed: u32) -> [usize; 6] {
-    let mut rng_seed = [0u8; 32];
-    rng_seed[..4].copy_from_slice(&random_seed.to_le_bytes());
-    let mut rng = rand::rngs::StdRng::from_seed(rng_seed);
-    let mut mapping = [0, 1, 2, 3, 4, 5];
-    mapping.shuffle(&mut rng);
-    mapping
-}
-
 fn apply_bps_patch(rom: &mut Rom, orig_rom: &Rom, filename: &str) -> Result<()> {
     let path = Path::new(BPS_PATCH_PATH).join(filename);
     let patch_bytes = std::fs::read(path).with_context(|| format!("Loading {filename}"))?;
@@ -123,7 +114,13 @@ pub fn apply_retiling_and_palettes(
     }
 
     let random_seed = u32::from_le_bytes(rom.read_n(snes2pc(0xdfff00), 4)?.try_into()?);
-    let area_palette_mapping = get_area_palette_mapping(random_seed);
+    let mut rng_seed = [0u8; 32];
+    rng_seed[..4].copy_from_slice(&random_seed.to_le_bytes());
+    let mut rng = rand::rngs::StdRng::from_seed(rng_seed);
+    let mut area_palette_mapping = [0, 1, 2, 3, 4, 5];
+
+    // Shuffled area palette mapping: only used if area-shuffled palettes are enabled.
+    area_palette_mapping.shuffle(&mut rng);
 
     apply_bps_patch(rom, orig_rom, "tilesets.bps")?;
 
@@ -184,10 +181,6 @@ pub fn apply_retiling_and_palettes(
                 if statues_hallway_tiling && tourian_neighbors_strict.contains(&room_idx) {
                     "StatuesHallway".to_string()
                 } else {
-                    let seed = random_seed ^ (room_ptr as u32);
-                    let mut rng_seed = [0u8; 32];
-                    rng_seed[..4].copy_from_slice(&seed.to_le_bytes());
-                    let mut rng = rand::rngs::StdRng::from_seed(rng_seed);
                     let theme_idx = rng.gen_range(0..mosaic_themes.len());
                     mosaic_themes[theme_idx].name.clone()
                 }
@@ -209,13 +202,7 @@ pub fn apply_retiling_and_palettes(
                 }
             }
             PaletteTheme::AreaShuffled => area_palette_mapping[area],
-            PaletteTheme::Scrambled => {
-                let seed = random_seed ^ (room_ptr as u32);
-                let mut rng_seed = [0u8; 32];
-                rng_seed[..4].copy_from_slice(&seed.to_le_bytes());
-                let mut rng = rand::rngs::StdRng::from_seed(rng_seed);
-                rng.gen_range(0..6)
-            }
+            PaletteTheme::Scrambled => rng.gen_range(0..6),
             PaletteTheme::Constant(palette_index) => *palette_index as usize,
         };
 
