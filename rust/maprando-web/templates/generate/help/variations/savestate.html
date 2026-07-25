@@ -11,10 +11,21 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <p>This option allows creating at most one save state at a time. A save state can be loaded an unlimited amount of times. Any save state is cleared automatically by a regular save (at a save station or the Ship).</p>
-        <p>When set to "Unlimited", a save state can be created at any time.</p>
-        <p>When set to "Limited", a save state can be created only once, until refreshed by a regular save or load.</p>
-        <div class="alert alert-danger mb-0">This feature requires 256KB SRAM; FXPAK and most modern emulators support this configuration.
+        <p>This in-game save state option allows creating at most one save state at a time. A save state can be loaded an unlimited amount of times. Any save state is cleared automatically by a regular save (at a save station or the Ship).</p>
+        <ul>
+            <li><p><strong>Unlimited</strong>: A save state can be created at any time.</p>
+            <li><p><strong>Limited</strong>: A save state can be created only once, until refreshed by a regular save or load.</p>
+        </ul>
+        <p>Compared to emulator/platform-based save states, the in-game save state option has some advantages:</p>
+        <ul>
+            <li>Map tile progress is maintained.
+            <li>Music continues uninterrupted if the track is unchanged.
+            <li>Item collection times and other stats are preserved.
+            <li>The fact that save states are cleared by regular saves can help prevent accidental loads.
+            <li>The "Limited" option, if enabled, forces strategic use of save states.
+            <li>It works for some platforms (e.g FXPAK) that would otherwise be unsupported.
+        </ul>
+        <div class="alert alert-info mb-0">This feature requires 256KB SRAM; FXPAK and most modern emulators support this configuration.
         </div>
       </div>
       <div class="modal-footer">
