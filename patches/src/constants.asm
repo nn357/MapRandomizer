@@ -64,3 +64,7 @@
 
 !kill_samus = $80D339 ; defined in crash_handle_base.asm
 !bug_dialog = $80D334 ; defined in crash_handle_base.asm
+
+!savestate_state = $707F08
+!savestate_exists_mask = $0001
+!savestate_save_used_mask = $0002

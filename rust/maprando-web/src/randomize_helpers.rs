@@ -12,7 +12,7 @@ use maprando::{
     settings::{
         AreaAssignmentBaseOrder, AreaAssignmentPreset, CrashFixesPreset, DisableETankSetting,
         DoorLocksSize, ETankRefill, FillerItemPriority, ItemCount, MapStationActivationPreset,
-        RandomizerSettings, SpeedBooster, WallJump, get_objective_groups,
+        RandomizerSettings, SaveState, SpeedBooster, WallJump, get_objective_groups,
     },
     spoiler_log::SpoilerLog,
     spoiler_map,
@@ -217,6 +217,11 @@ impl SeedHeaderTemplate<'_> {
         }
         if other_settings.all_enemies_respawn {
             game_variations.push("All enemies respawn");
+        }
+        match other_settings.savestate {
+            SaveState::No => {}
+            SaveState::Limited => game_variations.push("Limited save states"),
+            SaveState::Unlimited => game_variations.push("Unlimited save states"),
         }
         game_variations
     }

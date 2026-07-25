@@ -21,7 +21,7 @@ use crate::{
         AreaAssignmentPreset, CrashFixes, CrashFixesPreset, DisableETankSetting, ETankRefill,
         EnemyDrops, Fanfares, FixMode, ItemCount, MapPreset, MotherBrainFight, ObjPreset,
         Objective, ObjectiveScreen, ProgressionPreset, QolPreset, RandomizerSettings, SaveAnimals,
-        SkillPreset, SpeedBooster, StartLocationMode, WallJump,
+        SaveState, SkillPreset, SpeedBooster, StartLocationMode, WallJump,
     },
 };
 use anyhow::{Context, Result, bail, ensure};
@@ -656,6 +656,22 @@ impl Patcher<'_> {
 
         if self.settings.other_settings.all_enemies_respawn {
             patches.push("everything_respawns");
+        }
+
+        match self.settings.other_settings.savestate {
+            SaveState::No => {
+                // null controller hooks
+                self.rom.write_u8(snes2pc(0x85C000), 0x6B)?; // RTL
+                self.rom.write_u8(snes2pc(0x85C003), 0x6B)?; // RTL
+            }
+            SaveState::Limited => {
+                patches.push("savestate");
+                self.rom.write_u16(snes2pc(0x85C006), 1)?;
+            }
+            SaveState::Unlimited => {
+                patches.push("savestate");
+                self.rom.write_u16(snes2pc(0x85C006), 0)?;
+            }
         }
 
         if self.settings.other_settings.disable_spikesuit {

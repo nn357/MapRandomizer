@@ -188,6 +188,10 @@ startup:
     sta $702700, X
     txa
     bne .copy_revealed
+    
+    ; Initialize SRAM savestate state
+    lda #$0000
+    sta !savestate_state
 
 .skip_init:
 
@@ -253,4 +257,4 @@ clear_timers:
     sta $0de2  ;
     rtl
 
-warnpc !bank_a1_free_space_end
+assert pc() <= !bank_a1_free_space_end

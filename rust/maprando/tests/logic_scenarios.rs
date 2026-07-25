@@ -352,6 +352,7 @@ fn get_settings(scenario: &Scenario) -> Result<RandomizerSettings> {
             disable_spikesuit: false,
             enable_major_glitches: false,
             race_mode: false,
+            savestate: maprando::settings::SaveState::No,
             random_seed: None,
         },
         debug: false,

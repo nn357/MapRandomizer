@@ -657,6 +657,7 @@ pub struct OtherSettings {
     pub enable_major_glitches: bool,
     pub speed_booster: SpeedBooster,
     pub race_mode: bool,
+    pub savestate: SaveState,
     pub random_seed: Option<usize>,
 }
 
@@ -797,6 +798,19 @@ impl AreaAssignment {
                 mother_brain_in_tourian: false,
             },
         }
+    }
+}
+
+#[derive(Clone, Copy, Serialize, Deserialize, Debug, PartialEq, Eq)]
+pub enum SaveState {
+    No,
+    Limited,
+    Unlimited,
+}
+
+impl std::fmt::Display for SaveState {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{self:?}")
     }
 }
 
@@ -1494,6 +1508,10 @@ fn upgrade_other_settings(settings: &mut serde_json::Value) -> Result<()> {
         || other_settings["all_enemies_respawn"].as_bool().is_none()
     {
         other_settings.insert("all_enemies_respawn".to_string(), false.into());
+    }
+
+    if other_settings.get("savestate").is_none() {
+        other_settings.insert("savestate".to_string(), "No".into());
     }
 
     if other_settings.get("disable_spikesuit").is_none()

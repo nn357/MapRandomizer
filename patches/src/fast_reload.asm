@@ -1,7 +1,7 @@
 ; Fast reload on death
 ; Based on patch by total: https://metroidconstruction.com/resource.php?id=421
 ; Compile with "asar" (https://github.com/RPGHacker/asar/releases)
-
+arch 65816
 
 !deathhook82 = $82DDC7 ;$82 used for death hook (game state $19)
 
@@ -13,6 +13,8 @@
 !bank_85_free_space_start = $859880
 !bank_85_free_space_end = $859980
 
+!savestate_button_combo = $82FE78  ; This should be inside free space, and also consistent with reference in customize.rs
+!loadstate_button_combo = $82FE7A   ; This should be inside free space, and also consistent with reference in customize.rs
 !spin_lock_button_combo = $82FE7C   ; This should be inside free space, and also consistent with reference in customize.rs
 !reload_button_combo = $82FE7E   ; This should be inside free space, and also consistent with reference in customize.rs
 !freespacea0 = $a0fe00 ;$A0 used for instant save reload
@@ -62,25 +64,25 @@ org $85811E
 
 org !bank_85_free_space_start
 SupportedStates:
-    dw #$0007  ; Main gameplay fading in
-    dw #$0008  ; Main gameplay
-    dw #$0009  ; Hit a door block
-    dw #$000a  ; Loading next room
-    dw #$000b  ; Loading next room
-    dw #$000c  ; Pausing, normal gameplay but darkening
-    dw #$000d  ; Pausing, loading pause menu
-    dw #$000e  ; Paused, loading pause menu
-    dw #$000f  ; Paused, objective/map/equipment screens
-    dw #$0012  ; Unpausing, normal gameplay but brightening
-    dw #$0013  ; Death sequence, start
-    dw #$0014  ; Death sequence, black out surroundings
-    dw #$0015  ; Death sequence, wait for music
-    dw #$0016  ; Death sequence, pre-flashing
-    dw #$0017  ; Death sequence, flashing
-    dw #$0018  ; Death sequence, explosion white out
-    dw #$001b  ; Reserve tanks auto.
-    dw #$0027  ; Ending and credits. Cinematic. (reboot only)
-    dw #$ffff
+    dw $0007  ; Main gameplay fading in
+    dw $0008  ; Main gameplay
+    dw $0009  ; Hit a door block
+    dw $000a  ; Loading next room
+    dw $000b  ; Loading next room
+    dw $000c  ; Pausing, normal gameplay but darkening
+    dw $000d  ; Pausing, loading pause menu
+    dw $000e  ; Paused, loading pause menu
+    dw $000f  ; Paused, objective/map/equipment screens
+    dw $0012  ; Unpausing, normal gameplay but brightening
+    dw $0013  ; Death sequence, start
+    dw $0014  ; Death sequence, black out surroundings
+    dw $0015  ; Death sequence, wait for music
+    dw $0016  ; Death sequence, pre-flashing
+    dw $0017  ; Death sequence, flashing
+    dw $0018  ; Death sequence, explosion white out
+    dw $001b  ; Reserve tanks auto.
+    dw $0027  ; Ending and credits. Cinematic. (reboot only)
+    dw $ffff
 
 hook_main:
     jsl $808338  ; run hi-jacked instruction
@@ -140,6 +142,23 @@ hook_main:
     and !reload_button_combo   ; L + R + Select + Start
     bne .reset   ; Reset only if at least one of the inputs is newly pressed
 .noreset
+    lda $8B
+    cmp !savestate_button_combo
+    bne .nosavestate
+    lda $8F      ; Newly pressed controller 1 input
+    and !savestate_button_combo
+    beq .nosavestate   ; Reset only if at least one of the inputs is newly pressed
+    jsl $85c000  ; save state
+    bra .btn_leave
+.nosavestate
+    lda $8B
+    cmp !loadstate_button_combo
+    bne .btn_leave
+    lda $8F      ; Newly pressed controller 1 input
+    and !loadstate_button_combo
+    beq .btn_leave   ; Reset only if at least one of the inputs is newly pressed
+    jsl $85c003  ; load state
+.btn_leave
     plp
     rtl
 .reset:
