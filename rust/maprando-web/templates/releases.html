@@ -14,7 +14,7 @@ document.getElementById("navigation-releases").classList.add("active");
 
 <h3 class="my-3">Release History</h3>
 
-<p><a id="release123">Version 123 (2026-07-25)</a>:
+<p><a id="release123">Version 123 (2026-07-31)</a>:
 <ul>
 <li>More "Room palettes" customization options are added:
     <ul>
@@ -28,8 +28,13 @@ document.getElementById("navigation-releases").classList.add("active");
     <li>The "Alternate" setting is renamed to "Vibrant".
     </ul>
 <li>New "Ammo size" options are added, under "Item progression / Item pool".
-<li>Fixed an issue that could cause heavy audio lag after a quick reload.
-<li>Improved MSU-1 support: track changes should no longer cause lag or audio glitches.
+<li>Audio-related fixes:
+    <ul>
+    <li>Fixed an issue that could cause heavy audio lag after a quick reload, most
+        noticeably when loading into the "Statues Hallway" music.
+    <li>Fixed an issue with "Trimmed" item fanfares when collecting two items in quick succession.
+    <li>Improved MSU-1 support: track changes should no longer cause lag or audio glitches.
+    </ul>
 <li>In-game save states are available as a generation-time option under "Other options".
     <ul>
     <li>"Limited" only allows creating a save state one time between regular saves.
