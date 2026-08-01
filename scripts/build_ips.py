@@ -3,6 +3,7 @@ import glob
 import json
 import logging
 import argparse
+import subprocess
 
 logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
 
@@ -44,11 +45,11 @@ def run_asar(asm_path, fill_byte, changed_byte_dict):
     rom_file.close()
     
     # Run the assembler
-    cmd = f'{args.assembler_path} --no-title-check --fix-checksum=off "{asm_path}" "{ROM_PATH}"'
-    # print("> " + cmd)
-    exit_code = os.system(cmd)
+    cmd = [args.assembler_path, "--no-title-check", "--fix-checksum=off", asm_path, ROM_PATH]
+    # print("> " + " ".join(cmd))
+    exit_code = subprocess.call(cmd)
     if exit_code != 0:
-        raise RuntimeError("Assembler command failed: " + cmd)
+        raise RuntimeError(f"Assembler command failed: {cmd}")
     
     rom_data = open(ROM_PATH, 'rb').read()
     for i, x in enumerate(rom_data):
