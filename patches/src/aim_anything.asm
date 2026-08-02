@@ -1,4 +1,5 @@
 ; by kejardon: https://metroidconstruction.com/files/assembly/234/KejardonAimAnythingFix.asm
+; with fix by idle
 lorom
 
 ;Aim Up/Down to any buttons
@@ -42,6 +43,7 @@ org $9181F4
 	BEQ +
 	LDA #$0020
 	TSB $12
+	TYA
 +
 	BIT $09BE
 	BEQ +
