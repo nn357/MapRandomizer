@@ -1610,11 +1610,11 @@ impl Patcher<'_> {
             0x0527, // Boss Fight (Crocomire)
             0x052A, // Miniboss Fight (Spore Spawn, Botwoon)
             0x0627, // Boss Fight (Phantoon, Kraid), also Baby Kraid room.
-            0x0645, // Big Boy Room (incoming)
         ];
 
         let rooms_to_keep: Vec<u16> = vec![
             238, // Mother Brain Room
+            232, // Big Boy Room
         ];
 
         let rooms_to_normalize = [
