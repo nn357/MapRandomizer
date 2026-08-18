@@ -251,22 +251,19 @@ hook_reserve_delay_counter_init:
 hook_reserve_tank_refilling:
     lda !arrow_mode
     beq .vanilla
-    
-    ; Samus health -= 1, unless this would be 0
     lda $09C2
+    cmp #$0002
+    bcc .stop_etanks_empty
     dec a
-    beq .stop_etanks_empty
     sta $09C2
     lda $09D6
     inc a
     cmp $09D4
-    bpl .stop_dump_etanks
+    bcs .stop_dump_etanks
     sta $09D6
-    lda $09C2
-    dec a
-    beq .stop_etanks_empty
+
     bra .done
-    
+
 .stop_dump_etanks
     ; Reserves hit full, vent regular energy
     lda $09D4
