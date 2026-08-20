@@ -238,13 +238,10 @@ hook_reserve_delay_counter_init:
     beq .vanilla
     lda $09c2   ; Reserve tank delay sound counter = [Samus health] - 1, rounded up to nearest 8
     dec a
-    clc
-    adc #$0007
-    and #$fff8
-    sta $0757
-    jml $82AF6B ; Return to vanilla code at handling the reserve tank delay sound counter
+    bra .return
 .vanilla
     lda $09d6   ; Hijacked code
+    .return
     clc
     jml $82AF62 ; Return to vanilla code
 
