@@ -823,7 +823,7 @@ impl Patcher<'_> {
             self.rom.write_u16(snes2pc(0x84E0B8), e_sz)?; // PLM EED7 (E-Tank)
             self.rom.write_u16(snes2pc(0x84E474), e_sz)?; // PLM EF2B (E-Tank, Chozo)
             self.rom.write_u16(snes2pc(0x84E93F), e_sz)?; // PLM EF7F (E-Tank, Shot Block)
-            self.rom.write_u16(snes2pc(0x88E717), e_sz)?; // Credits, E-Tank Item % Divisor
+            self.rom.write_u16(snes2pc(0x8BE717), e_sz)?; // Credits, E-Tank Item % Divisor
         }
 
         if self.settings.item_progression_settings.reserve_size > 1 {
@@ -832,7 +832,7 @@ impl Patcher<'_> {
             self.rom.write_u16(snes2pc(0x84E444), r_sz)?; // PLM EF27 (Reserve Tank)
             self.rom.write_u16(snes2pc(0x84E909), r_sz)?; // PLM EF7B (Reserve Tank, Chozo)
             self.rom.write_u16(snes2pc(0x84EE43), r_sz)?; // PLM EFCF (Reserve Tank, Shot Block)
-            self.rom.write_u16(snes2pc(0x88E719), r_sz)?; // Credits, Reserve Tank Item % Divisor
+            self.rom.write_u16(snes2pc(0x8BE719), r_sz)?; // Credits, Reserve Tank Item % Divisor
         }
 
         Ok(())
