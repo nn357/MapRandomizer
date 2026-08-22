@@ -238,35 +238,29 @@ hook_reserve_delay_counter_init:
     beq .vanilla
     lda $09c2   ; Reserve tank delay sound counter = [Samus health] - 1, rounded up to nearest 8
     dec a
-    clc
-    adc #$0007
-    and #$fff8
-    sta $0757
-    jml $82AF6B ; Return to vanilla code at handling the reserve tank delay sound counter
+    bra .return
 .vanilla
     lda $09d6   ; Hijacked code
+    .return
     clc
     jml $82AF62 ; Return to vanilla code
 
 hook_reserve_tank_refilling:
     lda !arrow_mode
     beq .vanilla
-    
-    ; Samus health -= 1, unless this would be 0
     lda $09C2
+    cmp #$0002
+    bcc .stop_etanks_empty
     dec a
-    beq .stop_etanks_empty
     sta $09C2
     lda $09D6
     inc a
     cmp $09D4
-    bpl .stop_dump_etanks
+    bcs .stop_dump_etanks
     sta $09D6
-    lda $09C2
-    dec a
-    beq .stop_etanks_empty
+
     bra .done
-    
+
 .stop_dump_etanks
     ; Reserves hit full, vent regular energy
     lda $09D4
