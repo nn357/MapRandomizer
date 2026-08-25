@@ -36,6 +36,10 @@ incsrc "constants.asm"
 !initial_max_power_bombs = $B5FE66
 !initial_save_map_coords = $702602
 !spin_lock_enabled = $1F70
+!starting_items_count = $DFFF10 ; overwritten in patch.rs
+
+org $dfff10 ; starting items count.
+dw $0000
 
 ;;; Hijack code that runs during initialization
 org $82801d
@@ -82,6 +86,8 @@ startup:
     sta $1F5B
 
     ; Initialize items/flags collected/equipped:
+    lda !starting_items_count
+    sta $09ee
     lda !initial_items_collected
     sta $09A4
     lda !initial_items_equipped

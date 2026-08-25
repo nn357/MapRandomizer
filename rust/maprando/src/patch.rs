@@ -487,6 +487,7 @@ impl Patcher<'_> {
             "fix_dust_torizo",
             "fix_choot",
             "resource_collection_hudcap",
+            "item_count",
         ];
 
         patches.push("new_game");
@@ -2316,6 +2317,22 @@ impl Patcher<'_> {
         ]
         .into_iter()
         .collect();
+
+        let mut starting_item_count: isize = 0;
+        for x in self.starting_items {
+            if x.count == 0 {
+                continue;
+            }
+            match x.item {
+                Item::Missile | Item::ETank | Item::ReserveTank | Item::Super | Item::PowerBomb => {
+                    starting_item_count += x.count as isize;
+                }
+                _ => {
+                    starting_item_count += 1;
+                }
+            }
+        }
+        self.rom.write_u16(snes2pc(0xDFFF10), starting_item_count)?;
 
         for x in self.starting_items {
             if x.count == 0 {
