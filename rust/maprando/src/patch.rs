@@ -840,6 +840,7 @@ impl Patcher<'_> {
     }
 
     fn place_items(&mut self) -> Result<()> {
+        let mut nothing_count: isize = 0;
         for (&item, &loc) in iter::zip(
             &self.randomization.item_placement,
             &self.game_data.item_locations,
@@ -849,6 +850,7 @@ impl Patcher<'_> {
             let new_plm_type = item_to_plm_type(item, orig_plm_type);
             self.rom.write_u16(item_plm_ptr, new_plm_type)?;
             if item == Item::Nothing {
+                nothing_count += 1;
                 let idx = self.rom.read_u16(item_plm_ptr + 4).unwrap() as usize;
                 self.nothing_item_bitmask[idx >> 3] |= 1 << (idx & 7);
 
@@ -860,6 +862,7 @@ impl Patcher<'_> {
                 }
             }
         }
+        self.rom.write_u16(snes2pc(0xdfff0e), nothing_count)?;
         Ok(())
     }
 
