@@ -8,11 +8,15 @@
 ; credits % is displayed as a fraction if every item isn't placed.
 ; nn_357
 
-!unplaced_total = $dfff0e ; overwritten by patch.rs, contains the sum of 'nothing' and 'not_placed'
+!escape_seed = $dfff04      ; overwritten in patch.rs
+!unplaced_total = $dfff0e   ; overwritten by patch.rs, contains the sum of 'nothing' and 'not_placed'
 !item_count = $09ee
 
 org !unplaced_total
   dw $0000
+  
+org !escape_seed
+  db $00
 
 org $848821 ;;; $8821: Unused. Instruction - set the boss bits [[Y]] ;;; New routine - Update sum of items collected. preserves [A] unnecessary?
 item_count:
@@ -82,13 +86,16 @@ org $8be627
   rep #$30
   phx
   phy
+  lda !escape_seed
+  and #$00ff
+  bne .is_100
   lda !unplaced_total
   bne .fractional
   lda !item_count
   cmp #$0064
   bne .not_100
 
-  ;100% completion
+.is_100                     ; 100% completion / escape seed.
   lda $e745
   sta $7e339c
   lda $e747
