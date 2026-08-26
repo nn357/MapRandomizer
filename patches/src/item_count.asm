@@ -6,17 +6,18 @@
 ; $09ee contains number of collected items.
 ;
 ; credits % is displayed as a fraction if every item isn't placed.
-; nn_357
+; nn_357 / StagShot
 
-!escape_seed = $dfff04      ; overwritten in patch.rs
-!unplaced_total = $dfff0e   ; overwritten by patch.rs, contains the sum of 'nothing' and 'not_placed'
+; !escape_seed = $dfff04        ; overwritten in patch.rs
+!starting_items_count = $dfff10 ; overwritten in patch.rs, also referenced in new_game.asm
+!unplaced_total = $dfff0e       ; overwritten by patch.rs, contains the sum of 'nothing'
 !item_count = $09ee
 
 org !unplaced_total
   dw $0000
   
-org !escape_seed
-  db $00
+; org !escape_seed
+  ; db $00
 
 org $848821 ;;; $8821: Unused. Instruction - set the boss bits [[Y]] ;;; New routine - Update sum of items collected. preserves [A] unnecessary?
 item_count:
@@ -86,17 +87,19 @@ org $8be627
   rep #$30
   phx
   phy
-  lda !escape_seed
-  and #$00ff
-  bne .is_100
-  lda !unplaced_total
-  bne .fractional
+  lda !unplaced_total         ; everything placed?
+  beq .check_100
+  cmp !starting_items_count   ; nothing count = same as starting items? (seed has starting items / escape seed)
+  beq .check_100
+
+  bra .fractional             ; seed has more nothings than starting items (desolate / small map / stop item placement)
+
+.check_100:
   lda !item_count
   cmp #$0064
   bne .not_100
-
-.is_100                     ; 100% completion / escape seed.
-  lda $e745
+.is_100  
+  lda $e745                    ; 100% completion
   sta $7e339c
   lda $e747
   sta $7e33dc
@@ -120,6 +123,7 @@ org $8be627
   lda #$0064
   sec
   sbc !unplaced_total
+  beq .is_100                  ; if you set enough starting items / higher difficulty nothing will be placed, this can result in a xx/00, in which case just display 100%.
   sta $14                
 
   lda !item_count        
@@ -230,15 +234,25 @@ WaitVB:
     rtl
 
 top_slash:
-    db $00,$00,$00,$00,$00,$00,$00,$00
-    db $00,$0F,$06,$19,$0C,$33,$18,$26
-    db $00,$00,$00,$00,$00,$00,$00,$00
-    db $00,$00,$00,$00,$00,$00,$00,$00
-    
+  db $00, $07, $02, $0D, $06, $09, $06, $09 
+  db $0C, $13, $0C, $32, $18, $26, $18, $24
+  db $00, $00, $00, $00, $00, $00, $00, $00
+  db $00, $00, $00, $00, $00, $00, $00, $00
+
+; db $00,$00,$00,$00,$00,$00,$00,$00
+; db $00,$0F,$06,$19,$0C,$33,$18,$26
+; db $00,$00,$00,$00,$00,$00,$00,$00
+; db $00,$00,$00,$00,$00,$00,$00,$00
+     
 bottom_slash:
-    db $18,$64,$30,$CC,$60,$98,$00,$F0
-    db $00,$00,$00,$00,$00,$00,$00,$00
-    db $00,$00,$00,$00,$00,$00,$00,$00
-    db $00,$00,$00,$00,$00,$00,$00,$00
+  db $18, $64, $30, $4C, $30, $C8, $60, $98 
+  db $60, $90, $40, $B0, $00, $E0, $00, $00
+  db $00, $00, $00, $00, $00, $00, $00, $00
+  db $00, $00, $00, $00, $00, $00, $00, $00
+
+; db $18,$64,$30,$CC,$60,$98,$00,$F0
+; db $00,$00,$00,$00,$00,$00,$00,$00
+; db $00,$00,$00,$00,$00,$00,$00,$00
+; db $00,$00,$00,$00,$00,$00,$00,$00
 
 assert pc() <= $dfe2b4

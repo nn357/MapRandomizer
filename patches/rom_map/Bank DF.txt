@@ -6,7 +6,7 @@ E212 - E2B4: ; item_count.asm
 E2B4 - FEEF: [free]
 FEF0 - FEFF: seed name (null-terminated ASCII string)
 FF00 - FF03: display seed / internal seed hash
-FF04 - FF04: ; item_count.asm (set to non zero for escape seeds in patch.rs)
+FF04 - FF04: [free]
 FF05 - FF06: randomizer settings:
   - bitmask $0001: walljump-boots item enabled
   - bitmask $0002: split speedbooster item enabled
