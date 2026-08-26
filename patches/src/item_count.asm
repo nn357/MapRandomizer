@@ -109,22 +109,23 @@ org $8be627
   bra .percent_symbol
 
 .fractional
+  jsl load_fractional_tiles   ; transfer custom '/' tile to VRAM
   lda #$0064
   sec
   sbc !unplaced_total
-  sta $14                ; denominator
+  sta $14                
 
-  lda !item_count         ; numerator
+  lda !item_count        
   ldx #$0000
   jsr .digit2
 
-  lda $14                 ; denominator
+  lda $14                 
   ldx #$0006
   jsr .digit2
 
-  lda #$3882              ; FIXME: come up with a better slash.
+  lda #$3888                  ; add custom '/' tile to tilemap
   sta $7e33a0             
-  lda #$3892
+  lda #$3898
   sta $7e33e0
   bra .finished
 
@@ -165,6 +166,72 @@ org $8be627
   sta $7e33de,x
   rts
 
-assert pc() <= $8be741; Tilemap values for decimal digits:
+assert pc() <= $8be741      ; Tilemap values for decimal digits:
 
 ;8BE6ED
+
+org $dfe212
+
+load_fractional_tiles:
+
+    php
+    sep #$30
+WaitVB:
+    lda $4212
+    and #$80
+    beq WaitVB
+
+    lda #$80                ; top_slash → $4880
+    sta $2115
+    lda #$80
+    sta $2116
+    lda #$48
+    sta $2117
+
+    lda #$01
+    sta $4300
+    lda #$18
+    sta $4301
+    lda.b #top_slash
+    sta $4302
+    lda.b #top_slash>>8
+    sta $4303
+    lda #$DF
+    sta $4304
+    lda #$20
+    sta $4305
+    stz $4306
+    lda #$01
+    sta $420B
+
+    lda #$80                  ; bottom_slash → $4980
+    sta $2116
+    lda #$49
+    sta $2117
+
+    lda.b #bottom_slash
+    sta $4302
+    lda.b #bottom_slash>>8
+    sta $4303
+    lda #$20
+    sta $4305
+    stz $4306
+    lda #$01
+    sta $420B
+    
+    plp
+    rtl
+
+top_slash:
+    db $00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$0F,$06,$19,$0C,$33,$18,$26
+    db $00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00
+    
+bottom_slash:
+    db $18,$64,$30,$CC,$60,$98,$00,$F0
+    db $00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00
+    db $00,$00,$00,$00,$00,$00,$00,$00
+
+assert pc() <= $dfe2b4
