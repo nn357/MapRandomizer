@@ -36,10 +36,6 @@ incsrc "constants.asm"
 !initial_max_power_bombs = $B5FE66
 !initial_save_map_coords = $702602
 !spin_lock_enabled = $1F70
-!starting_items_count = $DFFF10 ; overwritten in patch.rs
-
-org $dfff10 ; starting items count.
-dw $0000
 
 ;;; Hijack code that runs during initialization
 org $82801d
@@ -86,8 +82,6 @@ startup:
     sta $1F5B
 
     ; Initialize items/flags collected/equipped:
-    lda !starting_items_count
-    sta $09ee
     lda !initial_items_collected
     sta $09A4
     lda !initial_items_equipped
@@ -133,9 +127,6 @@ startup:
     dex
     bne .item_bits_loop
 
-    ; Set items collected for escape (to make item collection rate show 100%, only applicable for "Escape" start):
-    lda #$F32F
-    sta $1F5D
 
     ; Unlock Tourian statues room (to avoid camera glitching when entering from bottom, and also to ensure game is
     ; beatable since we don't take it into account as an obstacle in the item randomization logic)

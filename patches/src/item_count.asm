@@ -1,85 +1,20 @@
-; Modify plms to increase a new collected items variable upon item collection.
-; address is automatically saved / loaded to the save file
-;
-; overwrites unused routine $848821 set the boss bits [[Y]]
-;
-; $09ee contains number of collected items.
-;
+; Sum item bits to calculate collection percent.
+; 
 ; credits % is displayed as a fraction if every item isn't placed.
 ; nn_357 / StagShot
 
-; !escape_seed = $dfff04        ; overwritten in patch.rs
-!starting_items_count = $dfff10 ; overwritten in patch.rs, also referenced in new_game.asm
-!unplaced_total = $dfff0e       ; overwritten by patch.rs, contains the sum of 'nothing'
-!item_count = $09ee
+!bank_8b_free_space_start = $8bf91b
+!bank_8b_free_space_end  = $8bfaff
+!nothing_item_total = $dfff0e    ; overwritten by patch.rs, contains the sum of 'nothing'
+!item_count = $12
 
-org !unplaced_total
+org !nothing_item_total
   dw $0000
-  
-; org !escape_seed
-  ; db $00
-
-org $848821 ;;; $8821: Unused. Instruction - set the boss bits [[Y]] ;;; New routine - Update sum of items collected. preserves [A] unnecessary?
-item_count:
-  pha
-  lda !item_count
-  inc
-  sta !item_count
-  iny
-  iny
-  pla
-  rts
-assert pc() <= $84882D
-
-;; $88B0: Instruction - pick up beam [[Y]] and display message box [[Y] + 2] ;;;
-org $8488F0
-  jmp item_count
-assert pc() <= $8488f3
-
-;;; $88F3: Instruction - pick up equipment [[Y]] and display message box [[Y] + 2] ;;;
-org $848917
-  jmp item_count
-assert pc() <= $84891a
-
-;;; $891A: Instruction - pick up equipment [[Y]], add grapple to HUD and display grapple message box ;;;
-org $84893e
-  jmp item_count
-assert pc() <= $848941
-
-;;; $8941: Instruction - pick up equipment [[Y]], add x-ray to HUD and display x-ray message box ;;;
-org $848965
-  jmp item_count
-assert pc() <= $848968
-
-;;; $8968: Instruction - collect [[Y]] health energy tank ;;;
-org $848983
-  jmp item_count
-assert pc() <= $848986
-
-
-;;; $8986: Instruction - collect [[Y]] health reserve tank ;;;
-org $8489a6
-  jmp item_count
-assert pc() <= $8489a9
-
-;;; $89A9: Instruction - collect [[Y]] ammo missile tank ;;;
-org $8489cf
-  jmp item_count
-assert pc() <= $8489d2
-
-;;; $89D2: Instruction - collect [[Y]] ammo super missile tank ;;;
-org $8489f8
-  jmp item_count
-assert pc() <= $8489fb
-
-;;; $89FB: Instruction - collect [[Y]] ammo power bomb tank ;;;
-org $848a21
-  jmp item_count
-assert pc() <= $848a24
 
 ;;; $E627: Instruction - draw item percentage count ;;;
 
 org $8be627
+itempercent:
   php
   phb
   phk
@@ -87,18 +22,15 @@ org $8be627
   rep #$30
   phx
   phy
-  lda !unplaced_total         ; everything placed?
-  beq .check_100
-  cmp !starting_items_count   ; nothing count = same as starting items? (seed has starting items / escape seed)
-  beq .check_100
+  jsr countitems
+  lda !nothing_item_total         ; everything placed?
+  bne .fractional
 
-  bra .fractional             ; seed has more nothings than starting items (desolate / small map / stop item placement)
-
-.check_100:
   lda !item_count
+  and #$00ff
   cmp #$0064
   bne .not_100
-.is_100  
+  
   lda $e745                    ; 100% completion
   sta $7e339c
   lda $e747
@@ -119,23 +51,23 @@ org $8be627
   bra .percent_symbol
 
 .fractional
-  jsl load_fractional_tiles   ; transfer custom '/' tile to VRAM
+  jsr load_fractional_tiles   ; transfer custom '/' tile to VRAM
   lda #$0064
   sec
-  sbc !unplaced_total
-  beq .is_100                  ; if you set enough starting items / higher difficulty nothing will be placed, this can result in a xx/00, in which case just display 100%.
-  sta $14                
+  sbc !nothing_item_total
+  sta $14
 
-  lda !item_count        
+  lda !item_count
+  and #$00ff
   ldx #$0000
   jsr .digit2
 
-  lda $14                 
+  lda $14
   ldx #$0006
   jsr .digit2
 
   lda #$3888                  ; add custom '/' tile to tilemap
-  sta $7e33a0             
+  sta $7e33a0
   lda #$3898
   sta $7e33e0
   bra .finished
@@ -177,14 +109,36 @@ org $8be627
   sta $7e33de,x
   rts
 
+print pc
 assert pc() <= $8be741      ; Tilemap values for decimal digits:
 
-;8BE6ED
 
-org $dfe212
+org !bank_8b_free_space_start
+
+countitems:
+    php
+    sep #$30
+    lda #$00
+    
+    sta $12
+    ldy #$00
+.loop
+    ldx offsettable,y      
+    lda $7ed870,x          
+    and masktable,y        
+    tax                    
+    lda bitcounttable,x    
+    clc
+    adc !item_count
+    sta !item_count
+    iny
+    cpy #$0f               
+    bne .loop
+    
+    plp
+    rts                    
 
 load_fractional_tiles:
-
     php
     sep #$30
 WaitVB:
@@ -207,7 +161,7 @@ WaitVB:
     sta $4302
     lda.b #top_slash>>8
     sta $4303
-    lda #$DF
+    lda #$8b
     sta $4304
     lda #$20
     sta $4305
@@ -231,7 +185,7 @@ WaitVB:
     sta $420B
     
     plp
-    rtl
+    rts
 
 top_slash:
   db $00, $07, $02, $0D, $06, $09, $06, $09 
@@ -239,20 +193,49 @@ top_slash:
   db $00, $00, $00, $00, $00, $00, $00, $00
   db $00, $00, $00, $00, $00, $00, $00, $00
 
-; db $00,$00,$00,$00,$00,$00,$00,$00
-; db $00,$0F,$06,$19,$0C,$33,$18,$26
-; db $00,$00,$00,$00,$00,$00,$00,$00
-; db $00,$00,$00,$00,$00,$00,$00,$00
-     
 bottom_slash:
   db $18, $64, $30, $4C, $30, $C8, $60, $98 
   db $60, $90, $40, $B0, $00, $E0, $00, $00
   db $00, $00, $00, $00, $00, $00, $00, $00
   db $00, $00, $00, $00, $00, $00, $00, $00
 
-; db $18,$64,$30,$CC,$60,$98,$00,$F0
-; db $00,$00,$00,$00,$00,$00,$00,$00
-; db $00,$00,$00,$00,$00,$00,$00,$00
-; db $00,$00,$00,$00,$00,$00,$00,$00
+offsettable:
+    db $00,$01,$02,$03,$04,$05,$06,$07,$08,$09,$0A,$10,$11,$12,$13
 
-assert pc() <= $dfe2b4
+masktable:         ; collected item bits
+    db %11111111  ; $00 - all
+    db %11111111  ; $01 - all
+    db %11101111  ; $02 - not bit 4
+    db %11111111  ; $03 - all
+    db %11111110  ; $04 - not bit 0
+    db %00011111  ; $05 - not bits 5,6,7
+    db %11111111  ; $06 - all
+    db %11111111  ; $07 - all
+    db %11011111  ; $08 - no bit 5
+    db %11111110  ; $09 - not bit 0
+    db %00000001  ; $0A - only bit 0
+    db %11111111  ; $10 - all
+    db %11111111  ; $11 - all
+    db %11111111  ; $12 - all
+    db %00000101  ; $13 - only bits 0 and 2
+
+bitcounttable:
+    db $00,$01,$01,$02,$01,$02,$02,$03,$01,$02,$02,$03,$02,$03,$03,$04
+    db $01,$02,$02,$03,$02,$03,$03,$04,$02,$03,$03,$04,$03,$04,$04,$05
+    db $01,$02,$02,$03,$02,$03,$03,$04,$02,$03,$03,$04,$03,$04,$04,$05
+    db $02,$03,$03,$04,$03,$04,$04,$05,$03,$04,$04,$05,$04,$05,$05,$06
+    db $01,$02,$02,$03,$02,$03,$03,$04,$02,$03,$03,$04,$03,$04,$04,$05
+    db $02,$03,$03,$04,$03,$04,$04,$05,$03,$04,$04,$05,$04,$05,$05,$06
+    db $02,$03,$03,$04,$03,$04,$04,$05,$03,$04,$04,$05,$04,$05,$05,$06
+    db $03,$04,$04,$05,$04,$05,$05,$06,$04,$05,$05,$06,$05,$06,$06,$07
+    db $01,$02,$02,$03,$02,$03,$03,$04,$02,$03,$03,$04,$03,$04,$04,$05
+    db $02,$03,$03,$04,$03,$04,$04,$05,$03,$04,$04,$05,$04,$05,$05,$06
+    db $02,$03,$03,$04,$03,$04,$04,$05,$03,$04,$04,$05,$04,$05,$05,$06
+    db $03,$04,$04,$05,$04,$05,$05,$06,$04,$05,$05,$06,$05,$06,$06,$07
+    db $02,$03,$03,$04,$03,$04,$04,$05,$03,$04,$04,$05,$04,$05,$05,$06
+    db $03,$04,$04,$05,$04,$05,$05,$06,$04,$05,$05,$06,$05,$06,$06,$07
+    db $03,$04,$04,$05,$04,$05,$05,$06,$04,$05,$05,$06,$05,$06,$06,$07
+    db $04,$05,$05,$06,$05,$06,$06,$07,$05,$06,$06,$07,$06,$07,$07,$08
+
+
+assert pc() <= !bank_8b_free_space_end
