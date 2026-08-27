@@ -4,8 +4,10 @@
 ; nn_357 / StagShot
 
 !bank_8b_free_space_start = $8bf91b
-!bank_8b_free_space_end  = $8bfaff
+!bank_8b_free_space_end  = $8bfb06
 !nothing_item_total = $dfff0e    ; overwritten by patch.rs, contains the sum of 'nothing'
+!initial_item_bits = $b5fe12     
+
 !item_count = $12
 
 org !nothing_item_total
@@ -118,21 +120,25 @@ org !bank_8b_free_space_start
 countitems:
     php
     sep #$30
-    lda #$00
     
+    lda #$00
     sta $12
     ldy #$00
+    
 .loop
-    ldx offsettable,y      
-    lda $7ed870,x          
-    and masktable,y        
-    tax                    
+    ldx offsettable,y       
+    lda !initial_item_bits,x 
+    eor #$ff                
+    and $7ed870,x           
+    and masktable,y         
+    tax                     
     lda bitcounttable,x    
     clc
     adc !item_count
     sta !item_count
+
     iny
-    cpy #$0f               
+    cpy #$0f                
     bne .loop
     
     plp
@@ -236,6 +242,5 @@ bitcounttable:
     db $03,$04,$04,$05,$04,$05,$05,$06,$04,$05,$05,$06,$05,$06,$06,$07
     db $03,$04,$04,$05,$04,$05,$05,$06,$04,$05,$05,$06,$05,$06,$06,$07
     db $04,$05,$05,$06,$05,$06,$06,$07,$05,$06,$06,$07,$06,$07,$07,$08
-
 
 assert pc() <= !bank_8b_free_space_end
