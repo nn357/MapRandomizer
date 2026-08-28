@@ -2,10 +2,9 @@ $95: temporary variable (unused debug location) - used by extended messageboxes,
 $9B: decompression.asm
 $CF: vanilla_bugfixes.asm (used by crash dialogues to prevent unpause from resetting gamestate.)
 $09EC: number of disabled ETanks (saved to SRAM)
-$09EE: collected item_count (saved to SRAM)
 $0A1A: previous reserve health (reserve_hud.asm)
 $1F5B: map area (like $079F)
-$1F5D: [free] - previously used as escape items snapshot.
+$1F5D: [free].
 $1F60: fast_reload.asm
 $1F62: map area backup in pause menu (like $079F)
 $1F64: escape refill complete
