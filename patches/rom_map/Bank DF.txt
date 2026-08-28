@@ -13,4 +13,3 @@ FF07 - FF08: number of frames of artificial lag to add to the unpause black scre
 FF09 - FF0D: randomizer settings: skill/progression/qol/objectives/maplayout (autotracker use)
   - stored as single byte ordinal numbers, if a setting has a custom option then byte is set to 0
 FF0E - FF0F: sum of unplaced / nothing items (used for item credits fractional display with stop item placement early)
-FF10 - FF11: sum of starting items ; written by patch.rs. (added to collection % during new game)

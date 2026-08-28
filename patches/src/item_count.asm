@@ -7,7 +7,6 @@
 !bank_8b_free_space_end  = $8bfb06
 !nothing_item_total = $dfff0e    ; overwritten by patch.rs, contains the sum of 'nothing'
 !initial_item_bits = $b5fe12     
-
 !item_count = $12
 
 org !nothing_item_total
@@ -25,7 +24,7 @@ itempercent:
   phx
   phy
   jsr countitems
-  lda !nothing_item_total         ; everything placed?
+  lda !nothing_item_total
   bne .fractional
 
   lda !item_count
@@ -33,7 +32,7 @@ itempercent:
   cmp #$0064
   bne .not_100
   
-  lda $e745                    ; 100% completion
+  lda $e745       ; 100% completion
   sta $7e339c
   lda $e747
   sta $7e33dc
@@ -53,7 +52,7 @@ itempercent:
   bra .percent_symbol
 
 .fractional
-  jsr load_fractional_tiles   ; transfer custom '/' tile to VRAM
+  jsr load_fractional_tiles
   lda #$0064
   sec
   sbc !nothing_item_total
@@ -68,7 +67,7 @@ itempercent:
   ldx #$0006
   jsr .digit2
 
-  lda #$3888                  ; add custom '/' tile to tilemap
+  lda #$3888        ; add custom '/' tile to tilemap
   sta $7e33a0
   lda #$3898
   sta $7e33e0
@@ -111,87 +110,85 @@ itempercent:
   sta $7e33de,x
   rts
 
-print pc
-assert pc() <= $8be741      ; Tilemap values for decimal digits:
-
+assert pc() <= $8be741        ; Tilemap values for decimal digits:
 
 org !bank_8b_free_space_start
 
 countitems:
-    php
-    sep #$30
-    
-    lda #$00
-    sta $12
-    ldy #$00
+  php
+  sep #$30
+  
+  lda #$00
+  sta $12
+  ldy #$00
     
 .loop
-    ldx offsettable,y       
-    lda !initial_item_bits,x 
-    eor #$ff                
-    and $7ed870,x           
-    and masktable,y         
-    tax                     
-    lda bitcounttable,x    
-    clc
-    adc !item_count
-    sta !item_count
+  ldx offsettable,y       
+  lda !initial_item_bits,x 
+  eor #$ff                
+  and $7ed870,x           
+  and masktable,y         
+  tax                     
+  lda bitcounttable,x    
+  clc
+  adc !item_count
+  sta !item_count
 
-    iny
-    cpy #$0f                
-    bne .loop
-    
-    plp
-    rts                    
+  iny
+  cpy #$0f                
+  bne .loop
+  
+  plp
+  rts                    
 
 load_fractional_tiles:
-    php
-    sep #$30
+  php
+  sep #$30
 WaitVB:
-    lda $4212
-    and #$80
-    beq WaitVB
+  lda $4212
+  and #$80
+  beq WaitVB
 
-    lda #$80                ; top_slash → $4880
-    sta $2115
-    lda #$80
-    sta $2116
-    lda #$48
-    sta $2117
+  lda #$80        ; top_slash → $4880
+  sta $2115
+  lda #$80
+  sta $2116
+  lda #$48
+  sta $2117
 
-    lda #$01
-    sta $4300
-    lda #$18
-    sta $4301
-    lda.b #top_slash
-    sta $4302
-    lda.b #top_slash>>8
-    sta $4303
-    lda #$8b
-    sta $4304
-    lda #$20
-    sta $4305
-    stz $4306
-    lda #$01
-    sta $420B
+  lda #$01
+  sta $4300
+  lda #$18
+  sta $4301
+  lda.b #top_slash
+  sta $4302
+  lda.b #top_slash>>8
+  sta $4303
+  lda #$8b
+  sta $4304
+  lda #$20
+  sta $4305
+  stz $4306
+  lda #$01
+  sta $420B
 
-    lda #$80                  ; bottom_slash → $4980
-    sta $2116
-    lda #$49
-    sta $2117
+  lda #$80        ; bottom_slash → $4980
+  sta $2116
+  lda #$49
+  sta $2117
 
-    lda.b #bottom_slash
-    sta $4302
-    lda.b #bottom_slash>>8
-    sta $4303
-    lda #$20
-    sta $4305
-    stz $4306
-    lda #$01
-    sta $420B
-    
-    plp
-    rts
+  lda.b #bottom_slash
+  sta $4302
+  lda.b #bottom_slash>>8
+  sta $4303
+  lda #$20
+  sta $4305
+  stz $4306
+  lda #$01
+  sta $420B
+  
+  plp
+  rts
 
 top_slash:
   db $00, $07, $02, $0D, $06, $09, $06, $09 
@@ -206,41 +203,41 @@ bottom_slash:
   db $00, $00, $00, $00, $00, $00, $00, $00
 
 offsettable:
-    db $00,$01,$02,$03,$04,$05,$06,$07,$08,$09,$0A,$10,$11,$12,$13
+  db $00,$01,$02,$03,$04,$05,$06,$07,$08,$09,$0A,$10,$11,$12,$13
 
 masktable:         ; collected item bits
-    db %11111111  ; $00 - all
-    db %11111111  ; $01 - all
-    db %11101111  ; $02 - not bit 4
-    db %11111111  ; $03 - all
-    db %11111110  ; $04 - not bit 0
-    db %00011111  ; $05 - not bits 5,6,7
-    db %11111111  ; $06 - all
-    db %11111111  ; $07 - all
-    db %11011111  ; $08 - no bit 5
-    db %11111110  ; $09 - not bit 0
-    db %00000001  ; $0A - only bit 0
-    db %11111111  ; $10 - all
-    db %11111111  ; $11 - all
-    db %11111111  ; $12 - all
-    db %00000101  ; $13 - only bits 0 and 2
+  db %11111111  ; $00 - all
+  db %11111111  ; $01 - all
+  db %11101111  ; $02 - not bit 4
+  db %11111111  ; $03 - all
+  db %11111110  ; $04 - not bit 0
+  db %00011111  ; $05 - not bits 5,6,7
+  db %11111111  ; $06 - all
+  db %11111111  ; $07 - all
+  db %11011111  ; $08 - no bit 5
+  db %11111110  ; $09 - not bit 0
+  db %00000001  ; $0A - only bit 0
+  db %11111111  ; $10 - all
+  db %11111111  ; $11 - all
+  db %11111111  ; $12 - all
+  db %00000101  ; $13 - only bits 0 and 2
 
 bitcounttable:
-    db $00,$01,$01,$02,$01,$02,$02,$03,$01,$02,$02,$03,$02,$03,$03,$04
-    db $01,$02,$02,$03,$02,$03,$03,$04,$02,$03,$03,$04,$03,$04,$04,$05
-    db $01,$02,$02,$03,$02,$03,$03,$04,$02,$03,$03,$04,$03,$04,$04,$05
-    db $02,$03,$03,$04,$03,$04,$04,$05,$03,$04,$04,$05,$04,$05,$05,$06
-    db $01,$02,$02,$03,$02,$03,$03,$04,$02,$03,$03,$04,$03,$04,$04,$05
-    db $02,$03,$03,$04,$03,$04,$04,$05,$03,$04,$04,$05,$04,$05,$05,$06
-    db $02,$03,$03,$04,$03,$04,$04,$05,$03,$04,$04,$05,$04,$05,$05,$06
-    db $03,$04,$04,$05,$04,$05,$05,$06,$04,$05,$05,$06,$05,$06,$06,$07
-    db $01,$02,$02,$03,$02,$03,$03,$04,$02,$03,$03,$04,$03,$04,$04,$05
-    db $02,$03,$03,$04,$03,$04,$04,$05,$03,$04,$04,$05,$04,$05,$05,$06
-    db $02,$03,$03,$04,$03,$04,$04,$05,$03,$04,$04,$05,$04,$05,$05,$06
-    db $03,$04,$04,$05,$04,$05,$05,$06,$04,$05,$05,$06,$05,$06,$06,$07
-    db $02,$03,$03,$04,$03,$04,$04,$05,$03,$04,$04,$05,$04,$05,$05,$06
-    db $03,$04,$04,$05,$04,$05,$05,$06,$04,$05,$05,$06,$05,$06,$06,$07
-    db $03,$04,$04,$05,$04,$05,$05,$06,$04,$05,$05,$06,$05,$06,$06,$07
-    db $04,$05,$05,$06,$05,$06,$06,$07,$05,$06,$06,$07,$06,$07,$07,$08
+  db $00,$01,$01,$02,$01,$02,$02,$03,$01,$02,$02,$03,$02,$03,$03,$04
+  db $01,$02,$02,$03,$02,$03,$03,$04,$02,$03,$03,$04,$03,$04,$04,$05
+  db $01,$02,$02,$03,$02,$03,$03,$04,$02,$03,$03,$04,$03,$04,$04,$05
+  db $02,$03,$03,$04,$03,$04,$04,$05,$03,$04,$04,$05,$04,$05,$05,$06
+  db $01,$02,$02,$03,$02,$03,$03,$04,$02,$03,$03,$04,$03,$04,$04,$05
+  db $02,$03,$03,$04,$03,$04,$04,$05,$03,$04,$04,$05,$04,$05,$05,$06
+  db $02,$03,$03,$04,$03,$04,$04,$05,$03,$04,$04,$05,$04,$05,$05,$06
+  db $03,$04,$04,$05,$04,$05,$05,$06,$04,$05,$05,$06,$05,$06,$06,$07
+  db $01,$02,$02,$03,$02,$03,$03,$04,$02,$03,$03,$04,$03,$04,$04,$05
+  db $02,$03,$03,$04,$03,$04,$04,$05,$03,$04,$04,$05,$04,$05,$05,$06
+  db $02,$03,$03,$04,$03,$04,$04,$05,$03,$04,$04,$05,$04,$05,$05,$06
+  db $03,$04,$04,$05,$04,$05,$05,$06,$04,$05,$05,$06,$05,$06,$06,$07
+  db $02,$03,$03,$04,$03,$04,$04,$05,$03,$04,$04,$05,$04,$05,$05,$06
+  db $03,$04,$04,$05,$04,$05,$05,$06,$04,$05,$05,$06,$05,$06,$06,$07
+  db $03,$04,$04,$05,$04,$05,$05,$06,$04,$05,$05,$06,$05,$06,$06,$07
+  db $04,$05,$05,$06,$05,$06,$06,$07,$05,$06,$06,$07,$06,$07,$07,$08
 
 assert pc() <= !bank_8b_free_space_end
