@@ -6,7 +6,7 @@
 !bank_8b_free_space_start = $8bf91b
 !bank_8b_free_space_end  = $8bfb06
 !nothing_item_total = $dfff0e    ; overwritten by patch.rs, contains the sum of 'nothing'
-!initial_item_bits = $b5fe12     
+!initial_item_bits = $b5fe12     ; modified by patch.rs, also used in new_game.asm
 !item_count = $12
 
 org !nothing_item_total
@@ -119,7 +119,7 @@ countitems:
   sep #$30
   
   lda #$00
-  sta $12
+  sta !item_count
   ldy #$00
     
 .loop
