@@ -1,4 +1,3 @@
 F760 - F769: ; escape_items.asm
 F770 - F893: ; credits.asm
-F900 - F91B: ; escape.asm
-F91B - FB06: ; item_count.asm
+F900 - FAE9: ; item_count.asm
