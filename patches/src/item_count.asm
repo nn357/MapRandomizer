@@ -117,29 +117,27 @@ org !bank_8b_free_space_start
 countitems:
   php
   sep #$30
-  
+
   lda #$00
   sta !item_count
-  ldy #$00
-    
+  ldx #$00
+  
 .loop
-  ldx offsettable,y       
-  lda !initial_item_bits,x 
-  eor #$ff                
-  and $7ed870,x           
-  and masktable,y         
-  tax                     
-  lda bitcounttable,x    
+  lda !initial_item_bits,x
+  eor #$ff
+  and $7ed870,x
+  tay
+  lda bitcounttable,y
   clc
   adc !item_count
   sta !item_count
 
-  iny
-  cpy #$0f                
+  inx
+  cpx #$14            
   bne .loop
-  
+
   plp
-  rts                    
+  rts
 
 load_fractional_tiles:
   php
@@ -201,26 +199,6 @@ bottom_slash:
   db $60, $90, $40, $B0, $00, $E0, $00, $00
   db $00, $00, $00, $00, $00, $00, $00, $00
   db $00, $00, $00, $00, $00, $00, $00, $00
-
-offsettable:
-  db $00,$01,$02,$03,$04,$05,$06,$07,$08,$09,$0A,$10,$11,$12,$13
-
-masktable:         ; collected item bits
-  db %11111111  ; $00 - all
-  db %11111111  ; $01 - all
-  db %11101111  ; $02 - not bit 4
-  db %11111111  ; $03 - all
-  db %11111110  ; $04 - not bit 0
-  db %00011111  ; $05 - not bits 5,6,7
-  db %11111111  ; $06 - all
-  db %11111111  ; $07 - all
-  db %11011111  ; $08 - no bit 5
-  db %11111110  ; $09 - not bit 0
-  db %00000001  ; $0A - only bit 0
-  db %11111111  ; $10 - all
-  db %11111111  ; $11 - all
-  db %11111111  ; $12 - all
-  db %00000101  ; $13 - only bits 0 and 2
 
 bitcounttable:
   db $00,$01,$01,$02,$01,$02,$02,$03,$01,$02,$02,$03,$02,$03,$03,$04
