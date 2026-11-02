@@ -251,6 +251,8 @@ TransitionDMA_CalculateLayer2XPos:
     JSR $A2F9  ; run hi-jacked instruction
     RTS
 assert pc() <= !bank_80_free_space_end
+;warnpc $80A2F9 : padbyte $FF : pad $80A2F9
+
 
 ;---------------------------------------
 ; Dynamically load FX/Message Graphics
@@ -263,8 +265,11 @@ org $8580AA
 org $8580E8
     JSR ClearLayer3ForMessageClose ; 81F3 Clear message box BG3 tilemap
 
-org !bank_85_free_space_start 
+org !bank_85_free_space_start
 ClearLayer3ForMessageOpen:
+    PHP
+    REP #$30
+    PHY
     LDA #$4600 : STA $2116
     LDA #$BE00
     LDX #$0400
@@ -275,22 +280,24 @@ ClearLayer3ForMessageOpen:
     LDX #$0040              ; 4 tiles (2bpp)
     LDY #$009A
     JSR ClearLayer3_Go
-    BRA ClearLayer3_Done
-
+    BRA ClearLayer3_Finish
 ClearLayer3ForMessageClose:
+    PHP
+    REP #$30
+    PHY
     LDX #$4700 : STX $2116
     LDA $196E            ; FX type
-    BEQ ClearLayer3_Done
+    BEQ ClearLayer3_Finish
     CMP #$0026
     BEQ ClearLayer3_Water
     CMP #$000C
     BEQ ClearLayer3_Fog
-    BCS ClearLayer3_Done
+    BCS ClearLayer3_Finish
     CMP #$0006
     BEQ ClearLayer3_Water
-    LDX $1F17            ; pointer to ram address to dma
-    LDA $86FFFE,X        ; = $870000,X-2 without the DEX DEX
-    LDX $1F3B            ; dma size
+    LDX $1F17
+    LDA $86FFFE,X
+    LDX $1F3B
     LDY #$0087
     BRA ClearLayer3_CloseGo
 ClearLayer3_Fog:
@@ -303,11 +310,11 @@ ClearLayer3_FX:
     LDY #$009A
 ClearLayer3_CloseGo:
     JSR ClearLayer3_Go
-ClearLayer3_Done:
+ClearLayer3_Finish:
+    PLY
+    PLP
     JSR $81F3            ; displaced code
     RTS
-
-; In: A = source addr, X = size, Y = source bank, $2116 already set
 ClearLayer3_Go:
     STA $4302
     STX $4305
@@ -401,8 +408,7 @@ org $829580
 ; 'blank' tile for clearing layer 3 (BG Data Instruction)
 org $82E569
     LDA #$180F ; 184E
-
-; Digit tilemap on HUD because the numbers are moved
+    
 org $809DBF
 ; Health
     DW $2C00, $2C01, $2C02, $2C03, $2C04, $2C05, $2C06, $2C07, $2C08, $2C09
