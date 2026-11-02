@@ -275,11 +275,6 @@ ClearLayer3ForMessageOpen:
     LDX #$0400
     LDY #$009A
     JSR ClearLayer3_Go
-    LDA #$4980 : STA $2116  ; VRAM word address of tile $130
-    LDA #$C500              ; $9A:C500 = HUD gfx offset $1300
-    LDX #$0040              ; 4 tiles (2bpp)
-    LDY #$009A
-    JSR ClearLayer3_Go
     BRA ClearLayer3_Finish
 ClearLayer3ForMessageClose:
     PHP
