@@ -489,6 +489,7 @@ impl Patcher<'_> {
             "fix_choot",
             "resource_collection_hudcap",
             "item_count",
+            "fast_travel",
         ];
 
         patches.push("new_game");
@@ -3009,6 +3010,71 @@ impl Patcher<'_> {
         Ok(())
     }
 
+    fn write_map_warp_table(&mut self) -> Result<()> {
+        const MAP_WARP_TABLE_ADDR: usize = 0x83BA00;
+        const NUM_AREAS: usize = 6;
+        let map_room_ids = [15, 48, 87, 157, 203, 225];
+        let mut table = [0u16; NUM_AREAS];
+
+        println!("Building map warp table...");
+        for (room_idx, room) in self.game_data.room_geometry.iter().enumerate() {
+            if !map_room_ids.contains(&room.room_id) {
+                continue;
+            }
+            let area = self.map.area[room_idx];
+            if area >= NUM_AREAS {
+                bail!("Map room {} has invalid area {}", room.room_id, area);
+            }
+
+            let mut door_pairs: Vec<_> = self
+                .game_data
+                .reverse_door_ptr_pair_map
+                .iter()
+                .filter(|((room_id, _), _)| *room_id == room.room_id)
+                .map(|(_, pair)| *pair)
+                .collect();
+            door_pairs.sort();
+            door_pairs.dedup();
+            if door_pairs.len() != 1 {
+                bail!(
+                    "Map room {} has {} doors, expected 1",
+                    room.room_id,
+                    door_pairs.len()
+                );
+            }
+            let map_pair = door_pairs[0];
+
+            let mut entry_ptr = None;
+            for (src, dst, bidirectional) in &self.map.doors {
+                if *dst == map_pair {
+                    entry_ptr = src.0;
+                } else if *bidirectional && *src == map_pair {
+                    entry_ptr = dst.0;
+                }
+            }
+            let Some(entry_ptr) = entry_ptr else {
+                bail!("No door leads into map room {}", room.room_id);
+            };
+            if !(0x18000..0x20000).contains(&entry_ptr) {
+                bail!(
+                    "Door data for map room {} is outside bank $83: ${:X}",
+                    room.room_id,
+                    entry_ptr
+                );
+            }
+            if table[area] != 0 {
+                bail!("Area {} has more than one map room", area);
+            }
+            table[area] = (entry_ptr & 0xFFFF) as u16;
+        }
+
+        for (area, ptr) in table.iter().enumerate() {
+            self.rom
+                .write_u16(snes2pc(MAP_WARP_TABLE_ADDR + area * 2), *ptr as isize)?;
+        }
+        Ok(())
+    }
+
     fn apply_room_outline(&mut self, room_idx: usize, room_ptr: usize) -> Result<()> {
         let room = &self.game_data.room_geometry[room_idx];
         let room_x = self.rom.read_u8(room.rom_address + 2)?;
@@ -3922,6 +3988,7 @@ pub fn make_rom(
     {
         patcher.apply_all_room_outlines()?;
     }
+    patcher.write_map_warp_table()?;
     patcher.apply_toilet_data()?;
     patcher.apply_mother_brain_setup_asm()?;
     patcher.apply_extra_setup_asm()?;
