@@ -14,7 +14,7 @@ lorom
 !bank_df_free_space_end = $dffef0
 
 !bank_84_free_space_start = $84F690
-!bank_84_free_space_end = $84F6AF
+!bank_84_free_space_end = $84F710
 
 !canwarp = $1f5d
 !warp_pending = $1f5f 
@@ -41,10 +41,8 @@ org $8293B8
 org $82943A
     jmp warp_text_hook_spring
 
-org $848caa
+org $848c9f
     jmp map_activation_hook
-    nop 
-    nop
     
 org $8290F2
     jsl warp_button_long   
@@ -151,12 +149,15 @@ map_activation_hook:
     sta !backup_area
     lda #$ffff
     sta !canwarp
-    ply
-    plx
-    rts
+    lda $0789
+    bne .skipmsgbox
+    lda #$0014
+    jmp $8ca2
+.skipmsgbox:
+    lda #$000c
+    sta $0998
+    jmp $8cac
 assert pc() <= !bank_84_free_space_end
-
-
 
 org !bank_df_free_space_start
 

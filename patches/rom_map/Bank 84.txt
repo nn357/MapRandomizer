@@ -14,8 +14,8 @@ F590 - F59D: ; horizontal_door_fix.asm
 F5A0 - F5B5: ; energy_station_reserves.asm
 F5C0 - F62F: ; wall_doors.asm
 F630 - F68F: ; trimmed_fanfare.asm
-F690 - F699: ; fast_travel.asm
-F699 - F6CF: [free]
+F690 - F710: ; fast_travel.asm
+F710 - F6CF: [free]
 F6D0 - F6F9: ; missile_refill_all.asm
 F700 - F721: ; nothing_item.asm
 F730 - F7F1: ; stats.asm
