@@ -13,7 +13,7 @@ org $90A970             ; wrap the Samus row so real row 31 -> tilemap row 0
     JSR WrapRow         ; was: INC A : STA $16
 
 org $90A9A2             ; skip the old explored-bit reads, keep the area-pointer setup at $A9BD
-    BRA $A9BD
+    db $80,$19
 
 org $82B86C
     AND #$00F8          ; change pause map to wrap to row 0
@@ -38,13 +38,22 @@ MarkAbove:
     LDA $1E
     AND #$0083         ; keep page bit and column byte
     ORA $01,s          ; recombine with the new row
-    TAX                ; X is already the "row above" index, so use $07F7 below
+    TAX                ; X = in-area byte index of the tile above (0..$FF)
     PLA
     SEP #$20
     LDY $20
     LDA $07F7,x
     ORA $AC04,y
     STA $07F7,x
+
+    ; mirror to SRAM: in-area index ($00-$FF) -> overall index (area*$100 + index)
+    TXA : XBA
+    LDA $1F5B
+    XBA : TAX          ; 16-bit TAX copies the full accumulator: X = area<<8 | index
+    LDA $702000,x
+    ORA $AC04,y
+    STA $702000,x
+
     REP #$20
 .done:
     PLY : PLX
@@ -97,3 +106,5 @@ FetchWindow:
 .off:
     LDA #$0000
     RTS
+    
+assert pc() <= $90AC04
