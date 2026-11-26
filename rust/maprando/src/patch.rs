@@ -2149,7 +2149,7 @@ impl Patcher<'_> {
         const STATS_SCREEN_TABLE2: usize = 0xEAB8F0; // screen 1: not filled yet
         const STATS_SCREEN_ROW_BYTES: usize = 66;
         const STATS_SCREEN_MAX_ROWS: usize = 23; // 2 + 23 * 66 = 1520 bytes per table
-        const BLANK_TILE: isize = 0x005A; // must match blank_word in the asm
+        const BLANK_TILE: isize = 0x004F; // must match blank_word in the asm
         // item_name_pairs: same list as in apply_credits (worth pulling out into a shared helper)
         let item_name_pairs: Vec<(String, String)> = [
             ("ETank", "Energy Tank"),

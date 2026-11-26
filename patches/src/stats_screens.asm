@@ -32,47 +32,48 @@ org $8be7af
 
 org !bank_8b_free_space_start
 stats_handler:
-  php
-  rep #$30
+    php
+    rep #$30
 
-  ; L / R newly pressed: toggle stars
-  lda $8f
-  and #$0030                      ; R = $0010, L = $0020
-  beq .select
-  lda $1a05
-  eor #$0001
-  sta $1a05
+    ; L / R newly pressed: toggle stars
+    lda.b $8F
+    and.w #$0030                    ; R = $0010, L = $0020
+    beq .select
+    lda.w $1A05
+    eor.w #$0001
+    sta.w $1A05
 
 .select:
-  ; SELECT newly pressed
-  lda $8f
-  and #$2000
-  beq .done
+    ; SELECT newly pressed
+    lda.b $8F
+    and.w #$2000
+    beq .done
 
-  ; forced blank on
-  sep #$20
-  lda $51 : pha                   ; save the game's INIDISP mirror
-  lda #$80 : sta $51 : sta $2100
-  rep #$20
+    ; forced blank on
+    sep #$20
+    lda.b $51 : pha                 ; save the game's INIDISP mirror
+    lda.b #$80 : sta.b $51 : sta.w $2100
+    rep #$20
 
-  ; one-time palette / digit upload
-  lda.l !stats_palette_upload
-  bne .screen
-  jsl upload_stats_graphics
-  lda #$0001
-  sta.l !stats_palette_upload
+    ; one-time palette / digit upload
+    lda.l !stats_palette_upload
+    bne .screen
+    jsl upload_stats_graphics
+    lda.w #$0001
+    sta.l !stats_palette_upload
 
 .screen:
-  jsl update_stats_screen         ; flips the screen variable and uploads that screen
+    jsl update_stats_screen         ; flips the screen variable and uploads that screen
 
-  ; forced blank off
-  sep #$20
-  pla : sta $51 : sta $2100
+    ; forced blank off
+    sep #$20
+    pla : sta.b $51 : sta.w $2100
 
 .done:
-  plp
-  rts
+    plp
+    rts
 
+print pc
 org !bank_df_free_space_start
 
 stats_palettes:
@@ -108,63 +109,81 @@ digits_8x8_4bpp:
   db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; 9
 
 setup_stats:
-  lda #$0001
-  sta !stats_screen_var
-  lda #$0000
-  sta !stats_palette_upload
-  jsl $80824f                                                         ; replaced code      
-  rtl  
+    php
+    rep #$20
+    pha
+    lda.w #$0001
+    sta.l !stats_screen_var
+    lda.w #$0000
+    sta.l !stats_palette_upload
+    pla
+    plp
+    jsl $80824f                     ; replaced code
+    rtl 
   
 upload_stats_graphics:
-  php
-  rep #$30
-  phx
+    php
+    rep #$30
+    phx
 
-  ; palettes -> CGRAM $00-$7F (direct DMA)
-  sep #$20
-  stz $2121
-  lda #$00 : sta $4300
-  lda #$22 : sta $4301
-  ldx #stats_palettes : stx $4302
-  lda.b #stats_palettes>>16 : sta $4304
-  ldx #$0100 : stx $4305
-  lda #$01 : sta $420B
+    ; palettes -> CGRAM $00-$7F (direct DMA)
+    sep #$20
+    stz $2121
+    lda.b #$00 : sta $4300
+    lda.b #$22 : sta $4301
+    ldx.w #stats_palettes : stx $4302
+    lda.b #stats_palettes>>16 : sta $4304
+    ldx.w #$0100 : stx $4305
+    lda.b #$01 : sta $420B
 
-  ; digits -> VRAM via the game's transfer queue
-  rep #$30
-  ldx $0330                       ; queue pointer
+    ; digits -> VRAM via the game's transfer queue
+    rep #$30
+    ldx.w $0330                     ; queue pointer
 
-  ; entry 1: digits 0-6 -> VRAM word $4890
-  lda #224                        ; 7 tiles * 32 bytes
-  sta $D0,x
-  lda #digits_8x8_4bpp
-  sta $D2,x
-  sep #$20
-  lda.b #digits_8x8_4bpp>>16
-  sta $D4,x
-  rep #$20
-  lda #$4890
-  sta $D5,x
+    ; entry 1: digits 0-6 -> VRAM word $4890
+    lda.w #224                      ; 7 tiles * 32 bytes
+    sta.w $00D0,x
+    lda.w #digits_8x8_4bpp
+    sta.w $00D2,x
+    sep #$20
+    lda.b #digits_8x8_4bpp>>16
+    sta.w $00D4,x
+    rep #$20
+    lda.w #$4890
+    sta.w $00D5,x
 
-  ; entry 2: digits 7-9 -> VRAM word $4990
-  lda #96                         ; 3 tiles * 32 bytes
-  sta $D7,x
-  lda #digits_8x8_4bpp+224
-  sta $D9,x
-  sep #$20
-  lda.b #digits_8x8_4bpp>>16
-  sta $DB,x
-  rep #$20
-  lda #$4990
-  sta $DC,x
+    ; entry 2: digit 7 -> VRAM word $4990
+    lda.w #32                       ; 1 tile * 32 bytes
+    sta.w $00D7,x
+    lda.w #digits_8x8_4bpp+224
+    sta.w $00D9,x
+    sep #$20
+    lda.b #digits_8x8_4bpp>>16
+    sta.w $00DB,x
+    rep #$20
+    lda.w #$4990
+    sta.w $00DC,x
 
-  txa
-  clc
-  adc #$000E                      ; advance pointer past 2 entries (2 * 7)
-  sta $0330
-  plx
-  plp
-  rtl
+    ; entry 3: digits 8-9 -> VRAM word $49E0
+    lda.w #64                       ; 2 tiles * 32 bytes
+    sta.w $00DE,x
+    lda.w #digits_8x8_4bpp+256
+    sta.w $00E0,x
+    sep #$20
+    lda.b #digits_8x8_4bpp>>16
+    sta.w $00E2,x
+    rep #$20
+    lda.w #$49E0
+    sta.w $00E3,x
+
+    txa
+    clc
+    adc.w #$0015                    ; advance pointer past 3 entries (3 * 7)
+    sta.w $0330
+
+    plx
+    plp
+    rtl
   
 assert pc() <= !bank_df_free_space_end
 
@@ -177,60 +196,65 @@ stats_screen_table2:
 update_stats_screen:
     php
     rep #$30
+    phb
+    pea $7E7E : plb : plb           ; DB = $7E, so sta.w hits the buffer
+
     lda.l !stats_screen_var
-    eor #$0001
+    eor.w #$0001
     sta.l !stats_screen_var
     beq .screen0
-    ldx #stats_screen_table2-stats_screen_table
+    ldx.w #stats_screen_table2-stats_screen_table
     bra .go
 .screen0:
-    ldx #$0000
+    ldx.w #$0000
 .go:
-    phx                             ; table offset
+    ; clear buffer rows 0-25 with the blank tile
+    lda.l blank_word
+    ldy.w #$0000
+.clr:
+    sta.w $3000,y
+    iny : iny
+    cpy.w #$0680
+    bne .clr
 
-    ; clear the tilemap with a blank tile
-    sep #$20
-    lda #$80 : sta $2115
-    rep #$20
-    ldx #$0000 : stx $2116
-    sep #$20
-    lda #$09 : sta $4300            ; fixed source, 2 registers
-    lda #$18 : sta $4301
-    ldx #blank_word : stx $4302
-    lda.b #blank_word>>16 : sta $4304
-    ldx #$1000 : stx $4305
-    lda #$01 : sta $420B
-
-    ; rows -> tilemap, one 64-byte transfer each (skips the item_idx word)
-    rep #$30
-    plx
+    ; copy rows into the buffer, starting at tilemap row 3
     lda.l stats_screen_table,x      ; row count
-    beq .done
+    beq .queue
     pha
-    txa : clc : adc #stats_screen_table+2 : tax   ; first row address
-    ldy #$0060                      ; VRAM word of tilemap row 3
-    sep #$20
-    lda #$01 : sta $4300
-    lda #$18 : sta $4301
-    lda #!stats_table_bank : sta $4304
-    rep #$20
+    txa : clc : adc.w #stats_screen_table+2 : tax
+    ldy.w #$30C0                    ; $3000 + row 3 * $40
 .row:
-    sty $2116
-    stx $4302
-    lda #$0040 : sta $4305
-    sep #$20
-    lda #$01 : sta $420B
-    rep #$20
-    txa : clc : adc #66 : tax
-    tya : clc : adc #$0020 : tay
+    lda.w #$0020
+    pha                             ; word counter
+.word:
+    lda.l !stats_table_bank<<16,x
+    sta.w $0000,y
+    inx : inx
+    iny : iny
+    lda 1,s : dec : sta 1,s
+    bne .word
+    pla
+    inx : inx                       ; skip the item_idx word
     lda 1,s : dec : sta 1,s
     bne .row
     pla
-.done:
+
+.queue:
+    plb
+    ; the game's own entry covers buffer bytes $0000-$04DF, so queue the
+    ; rest (rows 19-25) to VRAM word $4C00 + $270 = $4E70
+    ldx.w $0330
+    lda.w #$01A0 : sta.w $00D0,x
+    lda.w #$34E0 : sta.w $00D2,x
+    sep #$20
+    lda.b #$7E : sta.w $00D4,x
+    rep #$20
+    lda.w #$4E70 : sta.w $00D5,x
+    txa : clc : adc.w #$0007 : sta.w $0330
     plp
     rtl
 
 blank_word:
-    dw $005A                        ; must match BLANK_TILE in Rust
-
+    dw $004F                        ; must match BLANK_TILE in Rust
+print pc
 assert pc() <= !bank_ea_free_space_end
