@@ -489,6 +489,7 @@ impl Patcher<'_> {
             "fix_choot",
             "resource_collection_hudcap",
             "item_count",
+            "stats_screens",
         ];
 
         patches.push("new_game");
@@ -2123,6 +2124,97 @@ impl Patcher<'_> {
         // Write the display_seed, used by "seed_hash_display.asm" to show enemy names in the main menu.
         let seed_bytes = (self.randomization.display_seed as u32).to_le_bytes();
         self.rom.write_n(snes2pc(0xdfff00), &seed_bytes)?;
+        Ok(())
+    }
+
+    // Stats screen tables (must match stats_screen_table / stats_screen_table2 in stats_screen.asm)
+    // Table layout:
+    //   +0:  row count
+    //   +2:  rows, 66 bytes each: 32 tile words (one tilemap row), then the item_idx word
+    const STATS_SCREEN_TABLE: usize = 0xEAB300; // screen 0: items in spoiler order
+    #[allow(dead_code)]
+    const STATS_SCREEN_TABLE2: usize = 0xEAB8F0; // screen 1: not filled yet
+    const STATS_SCREEN_ROW_BYTES: usize = 66;
+    const STATS_SCREEN_MAX_ROWS: usize = 23; // 2 + 23 * 66 = 1520 bytes per table
+    const BLANK_TILE: isize = 0x005A; // must match blank_word in the asm
+
+    fn area_code_and_palette(area: &str) -> Result<(&'static str, isize)> {
+        Ok(match area.to_ascii_lowercase().as_str() {
+            "crateria" => ("CRA", 0x1800),
+            "brinstar" => ("BRI", 0x0C00),
+            "norfair" => ("NOR", 0x1000),
+            "wrecked ship" => ("WRE", 0x1400),
+            "maridia" => ("MAR", 0x0400),
+            "tourian" => ("TOU", 0x0800),
+            _ => bail!("unexpected area name: {}", area),
+        })
+    }
+
+    fn apply_stats_screen(&mut self) -> Result<()> {
+        // item_name_pairs: same list as in apply_credits (worth pulling out into a shared helper)
+        let item_name_pairs = item_name_pairs();
+        let item_display_name_map: HashMap<String, String> =
+            item_name_pairs.iter().cloned().collect();
+        let item_name_index: HashMap<String, usize> = item_name_pairs
+            .iter()
+            .enumerate()
+            .map(|(i, x)| (x.0.clone(), i))
+            .collect();
+
+        let table = snes2pc(STATS_SCREEN_TABLE);
+        let mut row = 0usize;
+
+        for item_info in self
+            .randomization
+            .essential_spoiler_data
+            .item_spoiler_info
+            .iter()
+        {
+            // Only items with a logic step above 0 get a row
+            let (Some(step), Some(area)) = (item_info.step, item_info.area.as_ref()) else {
+                continue;
+            };
+            if step == 0 {
+                continue;
+            }
+            if row >= STATS_SCREEN_MAX_ROWS {
+                bail!("too many items for the stats screen");
+            }
+
+            let raw_name = Item::VARIANTS[item_info.item as usize].to_string();
+            let item_name = &item_display_name_map[&raw_name];
+            let item_idx = item_name_index[&raw_name];
+            let (code, code_palette) = area_code_and_palette(area)?;
+
+            let base = table + 2 + row * STATS_SCREEN_ROW_BYTES;
+
+            // Start from a fully blank row (the time columns stay blank for now)
+            for col in 0..32 {
+                self.rom.write_u16(base + col * 2, BLANK_TILE)?;
+            }
+
+            // Item name, white (palette 0), starting at column 1
+            for (i, c) in item_name.chars().enumerate() {
+                let c = c.to_ascii_uppercase();
+                if c.is_ascii_uppercase() {
+                    let word = c as isize - 'A' as isize;
+                    self.rom.write_u16(base + (1 + i) * 2, word)?;
+                }
+            }
+
+            // Location code in the area's palette, starting at column 16
+            for (i, c) in code.chars().enumerate() {
+                let word = code_palette | (c as isize - 'A' as isize);
+                self.rom.write_u16(base + (16 + i) * 2, word)?;
+            }
+
+            // Item type index, for the runtime time lookup
+            self.rom.write_u16(base + 64, item_idx as isize)?;
+
+            row += 1;
+        }
+
+        self.rom.write_u16(table, row as isize)?;
         Ok(())
     }
 
@@ -3913,6 +4005,7 @@ pub fn make_rom(
     patcher.write_autotracker_map_layout()?;
     patcher.apply_seed_identifiers()?;
     patcher.apply_credits()?;
+    patcher.apply_stats_screen()?;
     if randomizer_settings.quality_of_life_settings.hazard_markers {
         patcher.apply_hazard_markers()?;
     }
