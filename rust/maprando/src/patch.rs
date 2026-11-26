@@ -261,14 +261,25 @@ pub fn xy_to_explored_bit_ptr(x: isize, y: isize) -> (isize, u8) {
 
 fn area_code_and_palette(area: &str) -> Result<(&'static str, isize)> {
     Ok(match area.to_ascii_lowercase().as_str() {
-        "crateria" => ("CRA", 0x1800),
-        "brinstar" => ("BRI", 0x0C00),
-        "norfair" => ("NOR", 0x1000),
-        "wrecked ship" => ("WRE", 0x1400),
-        "maridia" => ("MAR", 0x0400),
-        "tourian" => ("TOU", 0x0800),
+        "crateria" => ("C", 0x1800),
+        "brinstar" => ("B", 0x0C00),
+        "norfair" => ("N", 0x1000),
+        "wrecked ship" => ("W", 0x1400),
+        "maridia" => ("M", 0x0400),
+        "tourian" => ("T", 0x0800),
         _ => bail!("unexpected area name: {}", area),
     })
+}
+
+fn step_digit_tile(digit: u16) -> Result<isize> {
+    let tile: isize = match digit {
+        0..=6 => 0x1489 + (digit as isize),
+        7 => 0x1499,
+        8 => 0x149E,
+        9 => 0x149F,
+        _ => bail!("invalid step digit: {}", digit),
+    };
+    Ok(tile)
 }
 
 fn item_to_plm_type(item: Item, orig_plm_type: isize) -> isize {
@@ -2140,16 +2151,26 @@ impl Patcher<'_> {
     }
 
     fn apply_stats_screen(&mut self) -> Result<()> {
-        // Stats screen tables (must match stats_screen_table / stats_screen_table2 in stats_screen.asm)
-        // Table layout:
-        //   +0:  row count
-        //   +2:  rows, 66 bytes each: 32 tile words (one tilemap row), then the item_idx word
-        const STATS_SCREEN_TABLE: usize = 0xEAB300; // screen 0: items in spoiler order
-        #[allow(dead_code)]
-        const STATS_SCREEN_TABLE2: usize = 0xEAB8F0; // screen 1: not filled yet
-        const STATS_SCREEN_ROW_BYTES: usize = 66;
-        const STATS_SCREEN_MAX_ROWS: usize = 23; // 2 + 23 * 66 = 1520 bytes per table
-        const BLANK_TILE: isize = 0x004F; // must match blank_word in the asm
+        const STATS_SCREEN_TABLE: usize = 0xEAB300;
+        const STATS_SCREEN_WIDTH: usize = 32;
+        const STATS_SCREEN_HEIGHT: usize = 28;
+        const STATS_SCREEN_TILES: usize = STATS_SCREEN_WIDTH * STATS_SCREEN_HEIGHT;
+        const STATS_SCREEN_TILEMAP_BYTES: usize = STATS_SCREEN_TILES * 2; // $700
+        const STATS_SCREEN_TABLE_BYTES: usize =
+            STATS_SCREEN_TILEMAP_BYTES + STATS_SCREEN_HEIGHT * 2; // $738
+        const STATS_SCREEN_TABLE2: usize = STATS_SCREEN_TABLE + STATS_SCREEN_TABLE_BYTES; // $EABA38
+        const HEADER_ROW: usize = 1;
+        const HEADER_COL: usize = 2;
+        const HEADER_PALETTE: isize = 0x0400; // palette 1
+        const FIRST_ITEM_ROW: usize = 3;
+        const STATS_SCREEN_MAX_ROWS: usize = STATS_SCREEN_HEIGHT - FIRST_ITEM_ROW;
+        const BLANK_TILE: isize = 0x004F;
+        const COLON_TILE: isize = 0x141E;
+        const STEP_COL: usize = 1;
+        const ITEM_COL: usize = 5;
+        const TIME_COL: usize = 22;
+        const LOC_COL: usize = TIME_COL - 2;
+
         // item_name_pairs: same list as in apply_credits (worth pulling out into a shared helper)
         let item_name_pairs: Vec<(String, String)> = [
             ("ETank", "Energy Tank"),
@@ -2189,6 +2210,30 @@ impl Patcher<'_> {
             .collect();
 
         let table = snes2pc(STATS_SCREEN_TABLE);
+
+        // Blank both screens and mark every row as having no item
+        for addr in [STATS_SCREEN_TABLE, STATS_SCREEN_TABLE2] {
+            let pc = snes2pc(addr);
+            for i in 0..STATS_SCREEN_TILES {
+                self.rom.write_u16(pc + i * 2, BLANK_TILE)?;
+            }
+            for i in 0..STATS_SCREEN_HEIGHT {
+                self.rom
+                    .write_u16(pc + STATS_SCREEN_TILEMAP_BYTES + i * 2, 0xFFFF)?;
+            }
+        }
+
+        // Header
+        for (i, c) in "STATISTICS".chars().enumerate() {
+            let word = HEADER_PALETTE | (c as isize - 'A' as isize);
+            let offset = HEADER_ROW * STATS_SCREEN_WIDTH + HEADER_COL + i;
+            self.rom.write_u16(table + offset * 2, word)?;
+        }
+        let colon_offset = HEADER_ROW * STATS_SCREEN_WIDTH + HEADER_COL + "STATISTICS".len();
+        self.rom.write_u16(
+            table + colon_offset * 2,
+            HEADER_PALETTE | (COLON_TILE & 0x03FF),
+        )?;
         let mut row = 0usize;
 
         for item_info in self
@@ -2207,41 +2252,53 @@ impl Patcher<'_> {
             if row >= STATS_SCREEN_MAX_ROWS {
                 bail!("too many items for the stats screen");
             }
+            if step > 99 {
+                bail!("step {} exceeds 2-digit display", step);
+            }
 
             let raw_name = Item::VARIANTS[item_info.item as usize].to_string();
             let item_name = &item_display_name_map[&raw_name];
             let item_idx = item_name_index[&raw_name];
             let (code, code_palette) = area_code_and_palette(area)?;
 
-            let base = table + 2 + row * STATS_SCREEN_ROW_BYTES;
+            let screen_row = FIRST_ITEM_ROW + row;
+            let base = table + screen_row * STATS_SCREEN_WIDTH * 2;
+            let tens = (step / 10) as u16;
+            let ones = (step % 10) as u16;
+            let tens_tile = if tens == 0 {
+                BLANK_TILE
+            } else {
+                step_digit_tile(tens)?
+            };
+            self.rom.write_u16(base + STEP_COL * 2, tens_tile)?;
+            self.rom
+                .write_u16(base + (STEP_COL + 1) * 2, step_digit_tile(ones)?)?;
+            self.rom.write_u16(base + (STEP_COL + 2) * 2, COLON_TILE)?;
 
-            // Start from a fully blank row (the time columns stay blank for now)
-            for col in 0..32 {
-                self.rom.write_u16(base + col * 2, BLANK_TILE)?;
-            }
-
-            // Item name, white (palette 0), starting at column 1
+            // Item name, white (palette 0), starting at column 5
             for (i, c) in item_name.chars().enumerate() {
                 let c = c.to_ascii_uppercase();
                 if c.is_ascii_uppercase() {
                     let word = c as isize - 'A' as isize;
-                    self.rom.write_u16(base + (1 + i) * 2, word)?;
+                    self.rom.write_u16(base + (ITEM_COL + i) * 2, word)?;
                 }
             }
 
-            // Location code in the area's palette, starting at column 16
+            // Location code in the area's palette
             for (i, c) in code.chars().enumerate() {
                 let word = code_palette | (c as isize - 'A' as isize);
-                self.rom.write_u16(base + (16 + i) * 2, word)?;
+                self.rom.write_u16(base + (LOC_COL + i) * 2, word)?;
             }
 
             // Item type index, for the runtime time lookup
-            self.rom.write_u16(base + 64, item_idx as isize)?;
+            self.rom.write_u16(
+                table + STATS_SCREEN_TILEMAP_BYTES + screen_row * 2,
+                item_idx as isize,
+            )?;
 
             row += 1;
         }
 
-        self.rom.write_u16(table, row as isize)?;
         Ok(())
     }
 

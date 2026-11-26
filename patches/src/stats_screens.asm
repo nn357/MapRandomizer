@@ -196,9 +196,9 @@ assert pc() <= !bank_df_free_space_end
 
 org !bank_ea_free_space_start
 stats_screen_table:
-  rep 760 : dw $0000
+  rep $39C : dw $0000
 stats_screen_table2:
-  rep 760 : dw $0000
+  rep $39C : dw $0000
   
 update_stats_screen:
     php
@@ -215,43 +215,19 @@ update_stats_screen:
 .screen0:
     ldx.w #$0000
 .go:
-    ; clear buffer rows 0-25 with the blank tile
-    lda.l blank_word
     ldy.w #$0000
-.clr:
+.copy:
+    lda.l stats_screen_table,x      ; X = 0 or the second table's offset
     sta.w $3000,y
-    iny : iny
-    cpy.w #$0680
-    bne .clr
-
-    ; copy rows into the buffer, starting at tilemap row 3
-    lda.l stats_screen_table,x      ; row count
-    beq .queue
-    pha
-    txa : clc : adc.w #stats_screen_table+2 : tax
-    ldy.w #$30C0                    ; $3000 + row 3 * $40
-.row:
-    lda.w #$0020
-    pha                             ; word counter
-.word:
-    lda.l !stats_table_bank<<16,x
-    sta.w $0000,y
     inx : inx
     iny : iny
-    lda 1,s : dec : sta 1,s
-    bne .word
-    pla
-    inx : inx                       ; skip the item_idx word
-    lda 1,s : dec : sta 1,s
-    bne .row
-    pla
-
+    cpy.w #$0700
+    bne .copy
+    jsr stats_draw_times
 .queue:
     plb
-    ; the game's own entry covers buffer bytes $0000-$04DF, so queue the
-    ; rest (rows 19-25) to VRAM word $4C00 + $270 = $4E70
     ldx.w $0330
-    lda.w #$01A0 : sta.w $00D0,x
+    lda.w #$0220 : sta.w $00D0,x
     lda.w #$34E0 : sta.w $00D2,x
     sep #$20
     lda.b #$7E : sta.w $00D4,x
@@ -260,7 +236,173 @@ update_stats_screen:
     txa : clc : adc.w #$0007 : sta.w $0330
     plp
     rtl
+; Clobbers A, X, Y
+;
+; Scratch is a $14 byte stack frame used as direct page:
+;   $01-$04  frame count, then hundredths, then the running quotient
+;   $05-$0C  64-bit product ($0C is reused as the divisor)
+;   $0D      seconds
+;   $0F      minutes
+;   $11      pointer to the next item index
 
+stats_draw_times:
+    phd
+    tsc : sec : sbc.w #$0014 : tcs : tcd
+    stx $11
+    ldy.w #$302C                    ; buffer row 0, column 22
+
+.row:
+    ldx $11
+    inx : inx
+    stx $11
+    lda.l stats_screen_table-2,x    ; item index for this row
+    cmp.w #$FFFF
+    beq .next
+
+    asl : asl : tax                 ; 4 bytes per time
+    lda.l $7EFE06,x : sta $01
+    lda.l $7EFE08,x : sta $03
+    ora $01
+    beq .next                       ; not collected: leave blank
+
+    jsr stats_frames_to_hundredths
+
+    lda.w #100 : jsr stats_divide   ; drop the hundredths
+    lda.w #60  : jsr stats_divide : sta $0D
+    lda.w #60  : jsr stats_divide : sta $0F
+
+    ; cap hours at 99
+    lda $03
+    bne .cap
+    lda $01
+    cmp.w #100
+    bcc .draw
+.cap:
+    lda.w #99 : sta $01
+
+.draw:
+    jsr stats_draw_time
+
+.next:
+    tya : clc : adc.w #$0040 : tay
+    cpy.w #$302C+(28*$40)
+    bne .row
+
+    tsc : clc : adc.w #$0014 : tcs
+    pld
+    rts
+
+; hundredths = (frames * $01A9F711) >> 24, the same math as the credits
+macro stats_mul(f, k, pos)
+    sep #$20
+    lda.b $01+<f> : sta.l $004202
+    lda.b #<k>    : sta.l $004203
+    rep #$20
+    ldx.w #<pos>
+    jsr stats_add_product
+endmacro
+
+stats_frames_to_hundredths:
+    stz $05 : stz $07 : stz $09 : stz $0B
+
+    %stats_mul(0, $11, 0) : %stats_mul(1, $11, 1) : %stats_mul(2, $11, 2) : %stats_mul(3, $11, 3)
+    %stats_mul(0, $F7, 1) : %stats_mul(1, $F7, 2) : %stats_mul(2, $F7, 3) : %stats_mul(3, $F7, 4)
+    %stats_mul(0, $A9, 2) : %stats_mul(1, $A9, 3) : %stats_mul(2, $A9, 4) : %stats_mul(3, $A9, 5)
+    %stats_mul(0, $01, 3) : %stats_mul(1, $01, 4) : %stats_mul(2, $01, 5) : %stats_mul(3, $01, 6)
+
+    lda $08 : sta $01
+    lda $0A : sta $03
+    rts
+
+; add the hardware product into the 64-bit total at byte position X
+stats_add_product:
+    lda.l $004216
+    clc : adc $05,x : sta $05,x
+    bcc .done
+.carry:
+    inx : inx
+    inc $05,x
+    beq .carry
+.done:
+    rts
+
+; 32-bit / 8-bit, in place at $01-$04. In: A = divisor. Out: A = remainder
+stats_divide:
+    sep #$20
+    sta $0C
+    lda.b #$00                      ; running remainder
+    ldx.w #$0003
+.byte:
+    sta.l $004205
+    lda $01,x : sta.l $004204
+    lda $0C   : sta.l $004206
+    nop : nop : nop : nop : nop : nop : nop : nop
+    lda.l $004214 : sta $01,x
+    lda.l $004216
+    dex
+    bpl .byte
+    rep #$20
+    and.w #$00FF
+    rts
+
+; Y = buffer address of column 22. Layout: HH:MM:SS
+stats_draw_time:
+    lda $01
+    beq .no_hours
+
+    jsr stats_draw_lead             ; hours
+    lda.w #$001E : sta.w $0004,y
+    phy
+    tya : clc : adc.w #$0006 : tay
+    lda $0F : jsr stats_draw_two    ; minutes, keeps leading zero
+    ply
+    bra .seconds
+
+.no_hours:
+    phy
+    tya : clc : adc.w #$0006 : tay
+    lda $0F : jsr stats_draw_lead   ; minutes, no leading zero
+    ply
+
+.seconds:
+    lda.w #$001E : sta.w $000A,y
+    phy
+    tya : clc : adc.w #$000C : tay
+    lda $0D : jsr stats_draw_two
+    ply
+    rts
+
+; A = 0-99. Out: $4214 = tens, $4216 = ones, A = tens (Z set if zero)
+stats_split:
+    sta.l $004204
+    sep #$20
+    lda.b #10 : sta.l $004206
+    rep #$20
+    nop : nop : nop : nop : nop : nop : nop : nop
+    lda.l $004214
+    rts
+
+stats_draw_two:
+    jsr stats_split
+    asl : tax
+    lda.l stats_digits,x : sta.w $0000,y
+    bra stats_draw_ones
+
+stats_draw_lead:
+    jsr stats_split
+    beq stats_draw_ones             ; tens is zero: leave it blank
+    asl : tax
+    lda.l stats_digits,x : sta.w $0000,y
+
+stats_draw_ones:
+    lda.l $004216
+    asl : tax
+    lda.l stats_digits,x : sta.w $0002,y
+    rts
+
+stats_digits:
+    dw $0089, $008A, $008B, $008C, $008D, $008E, $008F, $0099, $009E, $009F
+    
 blank_word:
     dw $004F                        ; must match BLANK_TILE in Rust
 print pc
