@@ -259,6 +259,18 @@ pub fn xy_to_explored_bit_ptr(x: isize, y: isize) -> (isize, u8) {
     (offset_byte_part, offset_bitmask)
 }
 
+fn area_code_and_palette(area: &str) -> Result<(&'static str, isize)> {
+    Ok(match area.to_ascii_lowercase().as_str() {
+        "crateria" => ("CRA", 0x1800),
+        "brinstar" => ("BRI", 0x0C00),
+        "norfair" => ("NOR", 0x1000),
+        "wrecked ship" => ("WRE", 0x1400),
+        "maridia" => ("MAR", 0x0400),
+        "tourian" => ("TOU", 0x0800),
+        _ => bail!("unexpected area name: {}", area),
+    })
+}
+
 fn item_to_plm_type(item: Item, orig_plm_type: isize) -> isize {
     let item_id = item as isize;
 
@@ -2127,32 +2139,47 @@ impl Patcher<'_> {
         Ok(())
     }
 
-    // Stats screen tables (must match stats_screen_table / stats_screen_table2 in stats_screen.asm)
-    // Table layout:
-    //   +0:  row count
-    //   +2:  rows, 66 bytes each: 32 tile words (one tilemap row), then the item_idx word
-    const STATS_SCREEN_TABLE: usize = 0xEAB300; // screen 0: items in spoiler order
-    #[allow(dead_code)]
-    const STATS_SCREEN_TABLE2: usize = 0xEAB8F0; // screen 1: not filled yet
-    const STATS_SCREEN_ROW_BYTES: usize = 66;
-    const STATS_SCREEN_MAX_ROWS: usize = 23; // 2 + 23 * 66 = 1520 bytes per table
-    const BLANK_TILE: isize = 0x005A; // must match blank_word in the asm
-
-    fn area_code_and_palette(area: &str) -> Result<(&'static str, isize)> {
-        Ok(match area.to_ascii_lowercase().as_str() {
-            "crateria" => ("CRA", 0x1800),
-            "brinstar" => ("BRI", 0x0C00),
-            "norfair" => ("NOR", 0x1000),
-            "wrecked ship" => ("WRE", 0x1400),
-            "maridia" => ("MAR", 0x0400),
-            "tourian" => ("TOU", 0x0800),
-            _ => bail!("unexpected area name: {}", area),
-        })
-    }
-
     fn apply_stats_screen(&mut self) -> Result<()> {
+        // Stats screen tables (must match stats_screen_table / stats_screen_table2 in stats_screen.asm)
+        // Table layout:
+        //   +0:  row count
+        //   +2:  rows, 66 bytes each: 32 tile words (one tilemap row), then the item_idx word
+        const STATS_SCREEN_TABLE: usize = 0xEAB300; // screen 0: items in spoiler order
+        #[allow(dead_code)]
+        const STATS_SCREEN_TABLE2: usize = 0xEAB8F0; // screen 1: not filled yet
+        const STATS_SCREEN_ROW_BYTES: usize = 66;
+        const STATS_SCREEN_MAX_ROWS: usize = 23; // 2 + 23 * 66 = 1520 bytes per table
+        const BLANK_TILE: isize = 0x005A; // must match blank_word in the asm
         // item_name_pairs: same list as in apply_credits (worth pulling out into a shared helper)
-        let item_name_pairs = item_name_pairs();
+        let item_name_pairs: Vec<(String, String)> = [
+            ("ETank", "Energy Tank"),
+            ("Missile", "Missile"),
+            ("Super", "Super Missile"),
+            ("PowerBomb", "Power Bomb"),
+            ("Bombs", "Bombs"),
+            ("Charge", "Charge Beam"),
+            ("Ice", "Ice Beam"),
+            ("HiJump", "HiJump Boots"),
+            ("SpeedBooster", "Speed Booster"),
+            ("Wave", "Wave Beam"),
+            ("Spazer", "Spazer"),
+            ("SpringBall", "Spring Ball"),
+            ("Varia", "Varia Suit"),
+            ("Gravity", "Gravity Suit"),
+            ("XRayScope", "XRay Scope"),
+            ("Plasma", "Plasma Beam"),
+            ("Grapple", "Grappling Beam"),
+            ("SpaceJump", "Space Jump"),
+            ("ScrewAttack", "Screw Attack"),
+            ("Morph", "Morph Ball"),
+            ("ReserveTank", "Reserve Tank"),
+            ("WallJump", "WallJump Boots"),
+            ("SparkBooster", "Spark Booster"),
+            ("BlueBooster", "Blue Booster"),
+        ]
+        .into_iter()
+        .map(|(x, y)| (x.to_string(), y.to_string()))
+        .collect();
         let item_display_name_map: HashMap<String, String> =
             item_name_pairs.iter().cloned().collect();
         let item_name_index: HashMap<String, usize> = item_name_pairs
