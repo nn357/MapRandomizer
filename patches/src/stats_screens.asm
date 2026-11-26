@@ -51,10 +51,15 @@ stats_handler:
 
     ; forced blank on
     sep #$20
+    lda #$01                        ; hide bg2 (screw attack logo)
+    sta $69
     lda.b $51 : pha                 ; save the game's INIDISP mirror
     lda.b #$80 : sta.b $51 : sta.w $2100
     rep #$20
-
+    ; reset bg scroll
+    lda #$0000
+    sta $1997
+    
     ; one-time palette / digit upload
     lda.l !stats_palette_upload
     bne .screen
@@ -125,19 +130,21 @@ upload_stats_graphics:
     php
     rep #$30
     phx
+    phb
+    pea $7E7E : plb : plb           ; DB = $7E
 
-    ; palettes -> CGRAM $00-$7F (direct DMA)
-    sep #$20
-    stz $2121
-    lda.b #$00 : sta $4300
-    lda.b #$22 : sta $4301
-    ldx.w #stats_palettes : stx $4302
-    lda.b #stats_palettes>>16 : sta $4304
-    ldx.w #$0100 : stx $4305
-    lda.b #$01 : sta $420B
+    ; palettes -> game's CGRAM buffer $7E:C000 (sent to CGRAM by the NMI every frame)
+    ldx.w #$0000
+.pal:
+    lda.l stats_palettes,x
+    sta.w $C000,x
+    inx : inx
+    cpx.w #$0100
+    bne .pal
+
+    plb                             ; back to the caller's data bank
 
     ; digits -> VRAM via the game's transfer queue
-    rep #$30
     ldx.w $0330                     ; queue pointer
 
     ; entry 1: digits 0-6 -> VRAM word $4890
