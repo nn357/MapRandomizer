@@ -361,7 +361,7 @@ stats_draw_time:
 .no_hours:
     phy
     tya : clc : adc.w #$0006 : tay
-    lda $0F : jsr stats_draw_lead   ; minutes, no leading zero
+    lda $0F : jsr stats_draw_two   ; minutes, with leading zero, use draw_lead to remove the leading zero.
     ply
 
 .seconds:

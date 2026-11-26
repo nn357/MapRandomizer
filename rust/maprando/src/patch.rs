@@ -2167,9 +2167,8 @@ impl Patcher<'_> {
         const BLANK_TILE: isize = 0x004F;
         const COLON_TILE: isize = 0x141E;
         const STEP_COL: usize = 1;
-        const ITEM_COL: usize = 5;
-        const TIME_COL: usize = 22;
-        const LOC_COL: usize = TIME_COL - 2;
+        const ITEM_COL: usize = 7;
+        const LOC_COL: usize = 5;
 
         // item_name_pairs: same list as in apply_credits (worth pulling out into a shared helper)
         let item_name_pairs: Vec<(String, String)> = [
@@ -2234,6 +2233,19 @@ impl Patcher<'_> {
             table + colon_offset * 2,
             HEADER_PALETTE | (COLON_TILE & 0x03FF),
         )?;
+
+        // Seed hash
+        assert!(
+            colon_offset + 1 + self.randomization.seed_name.len()
+                <= (HEADER_ROW + 1) * STATS_SCREEN_WIDTH,
+            "Seed hash exceeds header row width"
+        );
+
+        for (i, c) in self.randomization.seed_name.chars().enumerate() {
+            let word = HEADER_PALETTE | (c as isize - 'A' as isize);
+            let offset = colon_offset + 1 + i;
+            self.rom.write_u16(table + offset * 2, word)?;
+        }
         let mut row = 0usize;
 
         for item_info in self
