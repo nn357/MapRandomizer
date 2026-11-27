@@ -20,6 +20,8 @@ lorom
 !stats_screen_var = $7ef5a6
 !stats_palette_upload = $7ef5a8
 
+!stats_colon = $1C1E ; tile 1E palette 7
+
 ;;; vanilla hooks
 
 org $8be7b5
@@ -82,14 +84,14 @@ print pc
 org !bank_df_free_space_start
 
 stats_palettes:
-  dw $0000, $7FFF, $28C6 : rep 13 : dw $0000   ; 0 white
+  dw $0000, $BF03, $7802, $EC00, $735A, $AD41, $082D, $6318, $B10B, $1700, $9F31, $FF7F, $FF7F, $FB48, $FF7F, $0000 ; 0 CRE
   dw $0000, $7DA4, $28C6 : rep 13 : dw $0000   ; 1 blue (Maridia, header)
   dw $0000, $023F, $28C6 : rep 13 : dw $0000   ; 2 orange (Tourian)
   dw $0000, $17E9, $28C6 : rep 13 : dw $0000   ; 3 green (Brinstar)
   dw $0000, $001D, $28C6 : rep 13 : dw $0000   ; 4 red (Norfair)
   dw $0000, $2717, $28C6 : rep 13 : dw $0000   ; 5 yellow (Wrecked Ship)
   dw $0000, $7C74, $28C6 : rep 13 : dw $0000   ; 6 purple (Crateria)
-  dw $0000, $7FFF, $28C6 : rep 13 : dw $0000   ; 7 spare
+  dw $0000, $7FFF, $28C6 : rep 13 : dw $0000   ; 7 white
 
 digits_8x8_4bpp:
   db $00,$7E,$3C,$C3,$66,$99,$66,$99,$66,$99,$66,$99,$3C,$C3,$00,$7E
@@ -351,7 +353,7 @@ stats_draw_time:
     beq .no_hours
 
     jsr stats_draw_lead             ; hours
-    lda.w #$001E : sta.w $0004,y
+    lda.w #!stats_colon : sta.w $0004,y
     phy
     tya : clc : adc.w #$0006 : tay
     lda $0F : jsr stats_draw_two    ; minutes, keeps leading zero
@@ -365,7 +367,7 @@ stats_draw_time:
     ply
 
 .seconds:
-    lda.w #$001E : sta.w $000A,y
+    lda.w #!stats_colon : sta.w $000A,y
     phy
     tya : clc : adc.w #$000C : tay
     lda $0D : jsr stats_draw_two
@@ -401,7 +403,7 @@ stats_draw_ones:
     rts
 
 stats_digits:
-    dw $0089, $008A, $008B, $008C, $008D, $008E, $008F, $0099, $009E, $009F
+    dw $1C89, $1C8A, $1C8B, $1C8C, $1C8D, $1C8E, $1C8F, $1C99, $1C9E, $1C9F ; palette 7
     
 blank_word:
     dw $004F                        ; must match BLANK_TILE in Rust

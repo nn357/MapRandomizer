@@ -2234,20 +2234,19 @@ impl Patcher<'_> {
             HEADER_PALETTE | (COLON_TILE & 0x03FF),
         )?;
 
-        // Seed hash
-        assert!(
-            colon_offset + 1 + self.randomization.seed_name.len()
-                <= (HEADER_ROW + 1) * STATS_SCREEN_WIDTH,
-            "Seed hash exceeds header row width"
-        );
-        for (i, c) in self.randomization.seed_name.chars().enumerate() {
+        // Seed hash: uppercase, right aligned, white (palette 7)
+        const SEED_END_COL: usize = 30; // one past the last seed column (right align with time digits on stats screen)
+        let seed_name = self.randomization.seed_name.to_ascii_uppercase();
+        assert!(seed_name.len() <= 12, "Seed hash exceeds header row width");
+        let seed_col = SEED_END_COL - seed_name.len();
+
+        for (i, c) in seed_name.chars().enumerate() {
             let tile = match c.to_digit(10) {
                 Some(d) => step_digit_tile(d as u16)? & 0x03FF,
-                None => c.to_ascii_uppercase() as isize - 'A' as isize,
+                None => c as isize - 'A' as isize,
             };
-            let offset = colon_offset + 1 + i;
-            self.rom
-                .write_u16(table + offset * 2, HEADER_PALETTE | tile)?;
+            let offset = HEADER_ROW * STATS_SCREEN_WIDTH + seed_col + i;
+            self.rom.write_u16(table + offset * 2, 0x1C00 | tile)?;
         }
         let mut row = 0usize;
 
@@ -2321,18 +2320,11 @@ impl Patcher<'_> {
         const RED: isize = 4;
         const YELLOW: isize = 5;
         const PURPLE: isize = 6;
-        const SEED_COL: usize = 19;
-
-        let seed_name = self.randomization.seed_name.as_str();
-        assert!(
-            SEED_COL + seed_name.len() <= STATS_SCREEN_WIDTH,
-            "Seed hash exceeds header row width"
-        );
 
         // (row, column, palette, text)
         let labels = [
             (1, 1, BLUE, "MISSION REPORT:"),
-            (1, SEED_COL, WHITE, seed_name),
+            (1, seed_col, WHITE, seed_name.as_str()),
             (3, 11, WHITE, "FINAL TIME"),
             (6, 2, PURPLE, "C"),
             (7, 2, GREEN, "B"),
