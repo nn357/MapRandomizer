@@ -2310,7 +2310,57 @@ impl Patcher<'_> {
 
             row += 1;
         }
+ // ---- Screen 2: mission report (static text only) ----
+        const WHITE: isize = 0;
+        const BLUE: isize = 1;
+        const ORANGE: isize = 2;
+        const GREEN: isize = 3;
+        const RED: isize = 4;
+        const YELLOW: isize = 5;
+        const PURPLE: isize = 6;
+        const SEED_COL: usize = 19;
 
+        let seed_name = self.randomization.seed_name.as_str();
+        assert!(
+            SEED_COL + seed_name.len() <= STATS_SCREEN_WIDTH,
+            "Seed hash exceeds header row width"
+        );
+
+        // (row, column, palette, text)
+        let labels = [
+            (1, 1, BLUE, "MISSION REPORT:"),
+            (1, SEED_COL, WHITE, seed_name),
+            (3, 11, WHITE, "FINAL TIME"),
+            (6, 2, PURPLE, "C"),
+            (7, 2, GREEN, "B"),
+            (8, 2, RED, "N"),
+            (6, 18, YELLOW, "W"),
+            (7, 18, BLUE, "M"),
+            (8, 18, ORANGE, "T"),
+            (10, 8, WHITE, "PAUSE"),
+            (12, 13, BLUE, "ITEMS"),
+            (20, 2, RED, "MISSILES"),
+            (21, 2, GREEN, "SUPERS"),
+            (22, 2, YELLOW, "POWER BOMBS"),
+            (20, 19, ORANGE, "E TANKS"),
+            (21, 19, BLUE, "RESERVES"),
+            (25, 4, WHITE, "ITEM COLLECTION:"),
+        ];
+
+        let table2 = snes2pc(STATS_SCREEN_TABLE2);
+        for (row, col, palette, text) in labels {
+            for (i, c) in text.chars().enumerate() {
+                let tile = match c {
+                    'A'..='Z' => c as isize - 'A' as isize,
+                    ':' => COLON_TILE & 0x03FF,
+                    ' ' => continue, // already blank
+                    _ => bail!("unsupported stats screen character: {c}"),
+                };
+                let offset = row * STATS_SCREEN_WIDTH + col + i;
+                self.rom
+                    .write_u16(table2 + offset * 2, (palette << 10) | tile)?;
+            }
+        }
         Ok(())
     }
 
