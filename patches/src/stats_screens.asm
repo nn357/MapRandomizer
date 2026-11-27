@@ -8,7 +8,7 @@ lorom
 ;;; declarations
 
 !bank_8b_free_space_start = $8bfac5
-!bank_8b_free_space_end = $8bffff
+!bank_8b_free_space_end = $8bfb2a
 
 !bank_df_free_space_start = $dfec32
 !bank_df_free_space_end = $dffef0
@@ -19,17 +19,21 @@ lorom
 !stats_table_bank = $ea
 !stats_screen_var = $7ef5a6
 !stats_palette_upload = $7ef5a8
+!stats_game_finished = $7ef5aa
 
 !stats_colon = $1C1E ; tile 1E palette 7
 
 ;;; vanilla hooks
 
-org $8be7b5
-  jsl setup_stats
+;org $8be7b5
+;  jsl setup_stats
 
 org $8be7af
   lda.w #stats_handler                                                          ;} Cinematic function = stats_handler
 
+org $8CE12D                                                                     ;] see you next mission #delete
+  dw end_of_game
+  
 ;;; custom code
 
 org !bank_8b_free_space_start
@@ -50,7 +54,8 @@ stats_handler:
     lda.b $8F
     and.w #$2000
     beq .done
-
+    lda !stats_game_finished
+    beq .done
     ; forced blank on
     sep #$20
     lda #$01                        ; hide bg2 (screw attack logo)
@@ -80,7 +85,16 @@ stats_handler:
     plp
     rts
 
-print pc
+end_of_game:
+    rep #$30
+    pha
+    lda #$0001
+    sta.l !stats_game_finished
+    pla
+    jmp $9698
+
+assert pc() <= !bank_8b_free_space_end
+
 org !bank_df_free_space_start
 
 stats_palettes:
@@ -117,18 +131,18 @@ digits_8x8_4bpp:
   db $00,$FF,$66,$99,$6C,$93,$18,$E7,$36,$C9,$66,$99,$00,$FF,$00,$00  
   db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; %
   
-setup_stats:
-    php
-    rep #$20
-    pha
-    lda.w #$0001
-    sta.l !stats_screen_var
-    lda.w #$0000
-    sta.l !stats_palette_upload
-    pla
-    plp
-    jsl $80824f                     ; replaced code
-    rtl 
+;setup_stats:
+;    php
+;    rep #$20
+;    pha
+;    lda.w #$0001
+;    sta.l !stats_screen_var
+;    lda.w #$0000
+;    sta.l !stats_palette_upload
+;    pla
+;    plp
+;    jsl $80824f                     ; replaced code
+;    rtl 
   
 upload_stats_graphics:
     php
@@ -196,7 +210,7 @@ upload_stats_graphics:
     lda.b #digits_8x8_4bpp>>16
     sta.w $00E9,x
     rep #$20
-    lda.w #$47F0
+    lda.w #$47B0
     sta.w $00EA,x
 
     txa
