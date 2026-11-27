@@ -7,6 +7,8 @@ lorom
 
 ;;; declarations
 
+incsrc "constants.asm"
+
 !bank_8b_free_space_start = $8bfac5
 !bank_8b_free_space_end = $8bfb2a
 
@@ -21,9 +23,13 @@ lorom
 !stats_palette_upload = $7ef5a8
 !stats_game_finished = $7ef5aa
 
+;;; tiles with fixed palettes
+
 !stats_colon = $1C1E ; tile 1E palette 7
+!stats_period = $1C1C ; tile 1C palette  7
 
 ;;; vanilla hooks
+
 
 ;org $8be7b5
 ;  jsl setup_stats
@@ -253,7 +259,12 @@ update_stats_screen:
     iny : iny
     cpy.w #$0700
     bne .copy
-    jsr stats_draw_times
+    lda.l !stats_screen_var
+    bne .report
+    jsr stats_draw_times            ; X still points at screen 1's item list
+    bra .queue
+.report:
+    jsr stats_draw_report
 .queue:
     plb
     ldx.w $0330
@@ -435,5 +446,83 @@ stats_digits:
     
 blank_word:
     dw $004F                        ; must match BLANK_TILE in Rust
+
+; Draws the mission report times as H:MM:SS.hh (HH from 10 hours)
+; Needs DB = $7E. Clobbers A, X, Y
+; Same $14 byte frame as stats_draw_times, plus $13 = hundredths
+stats_draw_report:
+    phd
+    tsc : sec : sbc.w #$0014 : tcs : tcd
+    stz $11                         ; table offset
+
+.next:
+    ldx $11
+    lda.l stats_report_table,x      ; SRAM address, 0 = end
+    bne .entry
+    tsc : clc : adc.w #$0014 : tcs
+    pld
+    rts
+
+.entry:
+    tax
+    lda.l $700000,x : sta $01       ; frame count
+    lda.l $700002,x : sta $03
+    ldx $11
+    lda.l stats_report_table+2,x : tay
+    inx #4
+    stx $11
+
+    jsr stats_frames_to_hundredths
+    lda.w #100 : jsr stats_divide : sta $13   ; hundredths
+    lda.w #60  : jsr stats_divide : sta $0D   ; seconds
+    lda.w #60  : jsr stats_divide : sta $0F   ; minutes, $01 = hours
+
+    ; cap at 99:59:59.99
+    lda $03
+    bne .cap
+    lda $01
+    cmp.w #100
+    bcc .hours
+.cap:
+    lda.w #99 : sta $01 : sta $13
+    lda.w #59 : sta $0D : sta $0F
+
+.hours:
+    lda $01
+    cmp.w #10
+    bcc .one_digit
+    jsr stats_draw_two
+    iny #4
+    bra .rest
+.one_digit:
+    asl : tax
+    lda.l stats_digits,x : sta.w $0000,y
+    iny #2
+
+.rest:
+    lda.w #!stats_colon : sta.w $0000,y
+    iny #2
+    lda $0F : jsr stats_draw_two
+    lda.w #!stats_colon : sta.w $0004,y
+    tya : clc : adc.w #$0006 : tay
+    lda $0D : jsr stats_draw_two
+    lda.w #!stats_period : sta.w $0004,y
+    tya : clc : adc.w #$0006 : tay
+    lda $13 : jsr stats_draw_two
+    jmp .next
+
+stats_report_table:
+    ;  SRAM time,         buffer address
+    dw !stat_final_time,  $3116
+    dw !stat_area0_time,  $3188     ; Crateria
+    dw !stat_area1_time,  $31C8     ; Brinstar
+    dw !stat_area2_time,  $3208     ; Norfair
+    dw !stat_area3_time,  $31A8     ; Wrecked Ship
+    dw !stat_area4_time,  $31E8     ; Maridia
+    dw !stat_area5_time,  $3228     ; Tourian
+    dw !stat_pause_time,  $329C
+    dw $0000
+
 print pc
+
 assert pc() <= !bank_ea_free_space_end
