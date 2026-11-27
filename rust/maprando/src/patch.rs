@@ -2240,11 +2240,14 @@ impl Patcher<'_> {
                 <= (HEADER_ROW + 1) * STATS_SCREEN_WIDTH,
             "Seed hash exceeds header row width"
         );
-
         for (i, c) in self.randomization.seed_name.chars().enumerate() {
-            let word = HEADER_PALETTE | (c as isize - 'A' as isize);
+            let tile = match c.to_digit(10) {
+                Some(d) => step_digit_tile(d as u16)? & 0x03FF,
+                None => c.to_ascii_uppercase() as isize - 'A' as isize,
+            };
             let offset = colon_offset + 1 + i;
-            self.rom.write_u16(table + offset * 2, word)?;
+            self.rom
+                .write_u16(table + offset * 2, HEADER_PALETTE | tile)?;
         }
         let mut row = 0usize;
 
@@ -2310,7 +2313,7 @@ impl Patcher<'_> {
 
             row += 1;
         }
- // ---- Screen 2: mission report (static text only) ----
+        // ---- Screen 2: mission report (static text only) ----
         const WHITE: isize = 7;
         const BLUE: isize = 1;
         const ORANGE: isize = 2;
@@ -2350,10 +2353,11 @@ impl Patcher<'_> {
         let table2 = snes2pc(STATS_SCREEN_TABLE2);
         for (row, col, palette, text) in labels {
             for (i, c) in text.chars().enumerate() {
-                let tile = match c {
+                let tile = match c.to_ascii_uppercase() {
                     'A'..='Z' => c as isize - 'A' as isize,
                     ':' => COLON_TILE & 0x03FF,
                     ' ' => continue, // already blank
+                    '0'..='9' => step_digit_tile(c as u16 - '0' as u16)? & 0x03FF,
                     _ => bail!("unsupported stats screen character: {c}"),
                 };
                 let offset = row * STATS_SCREEN_WIDTH + col + i;
