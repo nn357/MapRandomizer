@@ -533,24 +533,24 @@ stats_report_table:
 stats_draw_items:
     lda.l $8BE71B : tay             ; missiles
     lda.w $09C8 : jsr stats_quotient
-    ldy.w #$351C : jsr stats_draw_count
+    ldy.w #$352E : jsr stats_draw_count
 
     lda.l $8BE71D : tay             ; supers
     lda.w $09CC : jsr stats_quotient
-    ldy.w #$355C : jsr stats_draw_count
+    ldy.w #$356E : jsr stats_draw_count
 
     lda.l $8BE71F : tay             ; power bombs
     lda.w $09D0 : jsr stats_quotient
-    ldy.w #$359C : jsr stats_draw_count
+    ldy.w #$35AE : jsr stats_draw_count
 
     lda.l $8BE717 : tay             ; E tanks, including disabled
     lda.w $09C4 : sec : sbc.w #99 : jsr stats_quotient
     clc : adc.w !num_disabled_etanks
-    ldy.w #$3538 : jsr stats_draw_count
+    ldy.w #$35EE : jsr stats_draw_count
 
     lda.l $8BE719 : tay             ; reserves
     lda.w $09D4 : jsr stats_quotient
-    ldy.w #$3578 : jsr stats_draw_count
+    ldy.w #$362E : jsr stats_draw_count
 
     ; item collection
     ldx.w #$0000

@@ -2334,12 +2334,12 @@ impl Patcher<'_> {
             (8, 18, ORANGE, "T"),
             (10, 8, WHITE, "PAUSE"),
             (12, 13, BLUE, "ITEMS"),
-            (20, 2, RED, "MISSILES"),
-            (21, 2, GREEN, "SUPERS"),
-            (22, 2, YELLOW, "POWER BOMBS"),
-            (20, 19, ORANGE, "E TANKS"),
-            (21, 19, BLUE, "RESERVES"),
-            (25, 4, WHITE, "ITEM COLLECTION:"),
+            (20, 6, WHITE, "MISSILES"),
+            (21, 6, WHITE, "SUPER MISSILES"),
+            (22, 6, WHITE, "POWER BOMBS"),
+            (23, 6, WHITE, "ENERGY TANKS"),
+            (24, 6, WHITE, "RESERVE TANKS"),
+            (26, 4, WHITE, "ITEM COLLECTION:"),
         ];
 
         let table2 = snes2pc(STATS_SCREEN_TABLE2);
