@@ -114,7 +114,9 @@ digits_8x8_4bpp:
   db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; 8
   db $00,$7E,$3C,$C3,$66,$99,$66,$99,$3E,$C1,$06,$79,$3C,$43,$00,$7E
   db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; 9
-
+  db $00,$FF,$66,$99,$6C,$93,$18,$E7,$36,$C9,$66,$99,$00,$FF,$00,$00  
+  db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; %
+  
 setup_stats:
     php
     rep #$20
@@ -184,10 +186,22 @@ upload_stats_graphics:
     rep #$20
     lda.w #$49E0
     sta.w $00E3,x
+    
+     ; entry 4: percent -> VRAM word $47F0
+    lda.w #32                       ; 1 tile * 32 bytes
+    sta.w $00E5,x
+    lda.w #digits_8x8_4bpp+320
+    sta.w $00E7,x
+    sep #$20
+    lda.b #digits_8x8_4bpp>>16
+    sta.w $00E9,x
+    rep #$20
+    lda.w #$47F0
+    sta.w $00EA,x
 
     txa
     clc
-    adc.w #$0015                    ; advance pointer past 3 entries (3 * 7)
+    adc.w #$001C                    ; advance pointer past 4 entries (4 * 7)
     sta.w $0330
 
     plx
