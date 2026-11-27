@@ -16,15 +16,20 @@ incsrc "constants.asm"
 !bank_df_free_space_end = $dffef0
 
 !bank_ea_free_space_start = $eab300
-!bank_ea_free_space_end = $eaffff
+!bank_ea_free_space_end = $eac666
 
 !stats_table_bank = $ea
 !stats_screen_var = $7ef5a6
 !stats_palette_upload = $7ef5a8
 !stats_game_finished = $7ef5aa
 
-;;; tiles with fixed palettes
+!nothing_item_total = $dfff0e     ; modified by patch.rs, defined in item_count.asm
+!initial_item_bits  = $b5fe12     ; wrote by patch.rs
 
+
+;;; tiles with fixed palettes
+!stats_percent = $1C7B ; tile 7B palette 7
+!stats_slash   = $1C98 ; tile 98 palette 7
 !stats_colon = $1C1E ; tile 1E palette 7
 !stats_period = $1C1C ; tile 1C palette  7
 
@@ -265,6 +270,7 @@ update_stats_screen:
     bra .queue
 .report:
     jsr stats_draw_report
+    jsr stats_draw_items
 .queue:
     plb
     ldx.w $0330
@@ -522,7 +528,107 @@ stats_report_table:
     dw !stat_area5_time,  $3228     ; Tourian
     dw !stat_pause_time,  $329C
     dw $0000
+    
+; Needs DB = $7E and 16-bit A/X/Y. Clobbers A, X, Y
+stats_draw_items:
+    lda.l $8BE71B : tay             ; missiles
+    lda.w $09C8 : jsr stats_quotient
+    ldy.w #$351C : jsr stats_draw_count
 
-print pc
+    lda.l $8BE71D : tay             ; supers
+    lda.w $09CC : jsr stats_quotient
+    ldy.w #$355C : jsr stats_draw_count
+
+    lda.l $8BE71F : tay             ; power bombs
+    lda.w $09D0 : jsr stats_quotient
+    ldy.w #$359C : jsr stats_draw_count
+
+    lda.l $8BE717 : tay             ; E tanks, including disabled
+    lda.w $09C4 : sec : sbc.w #99 : jsr stats_quotient
+    clc : adc.w !num_disabled_etanks
+    ldy.w #$3538 : jsr stats_draw_count
+
+    lda.l $8BE719 : tay             ; reserves
+    lda.w $09D4 : jsr stats_quotient
+    ldy.w #$3578 : jsr stats_draw_count
+
+    ; item collection
+    ldx.w #$0000
+    ldy.w #$0000                    ; Y = items collected
+.byte:
+    sep #$20
+    lda.l !initial_item_bits,x
+    eor.b #$FF
+    and.l $7ED870,x
+.bit:
+    beq .next_byte
+    lsr
+    bcc .bit
+    iny
+    bra .bit
+.next_byte:
+    inx
+    cpx.w #$0014
+    bne .byte
+    rep #$20
+
+    tya
+    ldy.w #$366A
+    jsr stats_draw_number
+
+    lda.l !nothing_item_total
+    bne .fraction
+    lda.w #!stats_percent : sta.w $0000,y
+    rts
+.fraction:
+    lda.w #!stats_slash : sta.w $0000,y
+    iny #2
+    lda.w #100
+    sec : sbc.l !nothing_item_total
+    jmp stats_draw_number
+
+; A = dividend, Y = divisor (not 0). Out: A = quotient
+; Subtraction, because tank divisors can be over 255
+stats_quotient:
+    phy
+    ldx.w #$0000
+.loop:
+    cmp $01,s
+    bcc .done
+    sbc $01,s
+    inx
+    bra .loop
+.done:
+    ply
+    txa
+    rts
+
+; right-aligned in two tiles, capped at 99
+stats_draw_count:
+    cmp.w #100
+    bcc .draw
+    lda.w #99
+.draw:
+    jmp stats_draw_lead
+
+; A = 0-100, left-aligned. Out: Y = next tile
+stats_draw_number:
+    cmp.w #100
+    bcc .below
+    lda.l stats_digits+2 : sta.w $0000,y
+    lda.l stats_digits   : sta.w $0002,y : sta.w $0004,y
+    iny #6
+    rts
+.below:
+    cmp.w #10
+    bcc .one
+    jsr stats_draw_two
+    iny #4
+    rts
+.one:
+    asl : tax
+    lda.l stats_digits,x : sta.w $0000,y
+    iny #2
+    rts
 
 assert pc() <= !bank_ea_free_space_end
