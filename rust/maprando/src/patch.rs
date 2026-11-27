@@ -2287,11 +2287,11 @@ impl Patcher<'_> {
                 .write_u16(base + (STEP_COL + 1) * 2, step_digit_tile(ones)?)?;
             self.rom.write_u16(base + (STEP_COL + 2) * 2, COLON_TILE)?;
 
-            // Item name, white (palette 0), starting at column 5
+            // Item name, white (palette 7), starting at column 5
             for (i, c) in item_name.chars().enumerate() {
                 let c = c.to_ascii_uppercase();
                 if c.is_ascii_uppercase() {
-                    let word = c as isize - 'A' as isize;
+                    let word = 0x1C00 | (c as isize - 'A' as isize);
                     self.rom.write_u16(base + (ITEM_COL + i) * 2, word)?;
                 }
             }
@@ -2311,7 +2311,7 @@ impl Patcher<'_> {
             row += 1;
         }
  // ---- Screen 2: mission report (static text only) ----
-        const WHITE: isize = 0;
+        const WHITE: isize = 7;
         const BLUE: isize = 1;
         const ORANGE: isize = 2;
         const GREEN: isize = 3;
