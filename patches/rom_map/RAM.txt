@@ -4,7 +4,7 @@ $CF: vanilla_bugfixes.asm (used by crash dialogues to prevent unpause from reset
 $09EC: number of disabled ETanks (saved to SRAM)
 $0A1A: previous reserve health (reserve_hud.asm)
 $1F5B: map area (like $079F)
-$1F5D: collected items backup (used in escape for stats screen)
+$1F5D: collected items backup (used in escape for stats screen) save_load also uses this (maybe obsolete?)
 $1F60: fast_reload.asm
 $1F62: map area backup in pause menu (like $079F)
 $1F64: escape refill complete
