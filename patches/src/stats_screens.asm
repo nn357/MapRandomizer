@@ -37,28 +37,28 @@ incsrc "constants.asm"
 
 ;;; vanilla hooks
 
-
-;org $8be7b5
-;  jsl setup_stats
-
 org $8be7af
-  lda.w #stats_handler                                                          ;} Cinematic function = stats_handler
+    lda.w #stats_handler ;} Cinematic function = stats_handler
 
-org $8CE12D                                                                     ;] see you next mission #delete
-  dw end_of_game
+org $8CE12D ;] see you next mission #delete [code in 8b]
+    dw end_of_game
 
 org $91e5f0
-  jml backup_items                                                        
-  nop #2
+    jml backup_items                                                        
+    nop #2
 org $91e5f6
 backup_finished:
+
 ;;; custom code
 
 org !bank_8b_free_space_start
 stats_handler:
     php
     rep #$30
-
+    
+    ; check game is done drawing everything, if not return.
+    lda !stats_game_finished
+    beq .done
     ; L / R newly pressed: toggle stars
     lda.b $8F
     and.w #$0030                    ; R = $0010, L = $0020
@@ -72,8 +72,6 @@ stats_handler:
     lda.b $8F
     and.w #$2000
     beq .done
-    lda !stats_game_finished
-    beq .done
     ; forced blank on
     sep #$20
     lda #$01                        ; hide bg2 (screw attack logo)
@@ -81,13 +79,11 @@ stats_handler:
     lda.b $51 : pha                 ; save the game's INIDISP mirror
     lda.b #$80 : sta.b $51 : sta.w $2100
     rep #$20
-    ; reset bg scroll
-    lda #$0000
-    sta $1997
-    
-    ; one-time palette / digit upload
-    lda.l !stats_palette_upload
+    lda.l !stats_palette_upload     ; one-time, reset scroll index, upload stats screen palettes / graphics.
     bne .screen
+        
+    lda #$0000
+    sta $1997 ; reset bg scroll
     jsl upload_stats_graphics
     lda.w #$0001
     sta.l !stats_palette_upload
@@ -118,13 +114,13 @@ org !bank_df_free_space_start
 
 stats_palettes:
   dw $0000, $02DF, $01D7, $00AC, $5A73, $41AD, $2D08, $1863, $0BB1, $0017, $319F, $7FFF, $7FFF, $48FB, $7FFF, $0000 ; CRE
-  dw $0000, $7DA4, $28C6, $0BB1, $1EA9, $0145, $7FFF : rep 9 : dw $0000 ; 1 blue / Plasma
-  dw $0000, $023F, $28C6, $72BC, $48FB, $1816, $7FFF : rep 9 : dw $0000 ; 2 orange / Wave
+  dw $0000, $7DA4, $28C6, $0BB1, $1EA9, $0145, $7FFF, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000 ; 1 blue / Plasma
+  dw $0000, $023F, $28C6, $72BC, $48FB, $1816, $7FFF, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000 ; 2 orange / Wave
   dw $0000, $17E9, $28C6, $4A52, $72B2, $71C7, $4D03, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $7FFF, $0000 ; 3 green / Ice / Blue Booster
-  dw $0000, $001D, $28C6, $34C5, $2882, $7F34, $7D00 : rep 9 : dw $0000 ; 4 red / X-Ray
+  dw $0000, $001D, $28C6, $34C5, $2882, $7F34, $7D00, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000 ; 4 red / X-Ray
   dw $0000, $2717, $28C6, $02DF, $5A73, $41AD, $2D08, $1863, $0BB1, $48FB, $0000, $0000, $7FFF, $44E5, $0000, $0000 ; 5 yellow (WS) / Morph / Speed
   dw $0000, $7C74, $28C6, $15A3, $5EBB, $3DB3, $292E, $1486, $0000, $4A52, $318C, $0000, $7FFF, $294A, $4631, $7FFF ; 6 purple (Crateria) / WJB
-  dw $0000, $7FFF, $28C6 : rep 13 : dw $0000   ; 7 white
+  dw $0000, $7FFF, $28C6, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $0000 ; 7 white
 
 digits_8x8_4bpp:
   db $00,$7E,$3C,$C3,$66,$99,$66,$99,$66,$99,$66,$99,$3C,$C3,$00,$7E
@@ -237,18 +233,6 @@ bluebooster_tiles:
     db $FE,$00,$FE,$04,$FE,$08,$FC,$10
     db $F8,$30,$FC,$10,$FE,$08,$FE,$04
     
-;setup_stats:
-;    php
-;    rep #$20
-;    pha
-;    lda.w #$0001
-;    sta.l !stats_screen_var
-;    lda.w #$0000
-;    sta.l !stats_palette_upload
-;    pla
-;    plp
-;    jsl $80824f                     ; replaced code
-;    rtl 
 backup_items:
     lda $09A4
     sta !collected_items
@@ -263,7 +247,7 @@ upload_stats_graphics:
     phb
     pea $7E7E : plb : plb           ; DB = $7E
 
-    ; palettes -> game's CGRAM buffer $7E:C000 (sent to CGRAM by the NMI every frame)
+    ; palettes -> game's CGRAM buffer $7E:C000
     ldx.w #$0000
 .pal:
     lda.l stats_palettes,x
@@ -272,9 +256,9 @@ upload_stats_graphics:
     cpx.w #$0100
     bne .pal
 
-    plb                             ; back to the caller's data bank
+    plb
 
-    ; digits -> VRAM via the game's transfer queue
+    ; digits -> VRAM to nmi in game transfer queue
     ldx.w $0330                     ; queue pointer
 
     ; entry 1: digits 0-6 -> VRAM word $4890
@@ -398,16 +382,17 @@ print "Bank $DF free space ends at: $", pc
 assert pc() <= !bank_df_free_space_end
 
 org !bank_ea_free_space_start
+; tables are written to in patch.rs (fn_apply_stats_screen, this location is referenced there)
 stats_screen_table:
-  rep $39C : dw $0000
+  for i = 0..$39C : dw $0000 : endfor
 stats_screen_table2:
-  rep $39C : dw $0000
+  for i = 0..$39C : dw $0000 : endfor
   
 update_stats_screen:
     php
     rep #$30
     phb
-    pea $7E7E : plb : plb           ; DB = $7E, so sta.w hits the buffer
+    pea $7E7E : plb : plb           ; DB = $7E, so sta.w is ok here.
 
     lda.l !stats_screen_var
     eor.w #$0001
@@ -446,6 +431,7 @@ update_stats_screen:
     txa : clc : adc.w #$0007 : sta.w $0330
     plp
     rtl
+
 ; Clobbers A, X, Y
 ;
 ; Scratch is a $14 byte stack frame used as direct page:

@@ -192,6 +192,46 @@ impl Item {
         ]
         .contains(&self)
     }
+    /// Name shown in the credits and stats screen. `None` for `Nothing`.
+    pub fn display_name(self) -> Option<&'static str> {
+        Some(match self {
+            Item::ETank => "Energy Tank",
+            Item::Missile => "Missile",
+            Item::Super => "Super Missile",
+            Item::PowerBomb => "Power Bomb",
+            Item::Bombs => "Bombs",
+            Item::Charge => "Charge Beam",
+            Item::Ice => "Ice Beam",
+            Item::HiJump => "HiJump Boots",
+            Item::SpeedBooster => "Speed Booster",
+            Item::Wave => "Wave Beam",
+            Item::Spazer => "Spazer",
+            Item::SpringBall => "Spring Ball",
+            Item::Varia => "Varia Suit",
+            Item::Gravity => "Gravity Suit",
+            Item::XRayScope => "XRay Scope",
+            Item::Plasma => "Plasma Beam",
+            Item::Grapple => "Grappling Beam",
+            Item::SpaceJump => "Space Jump",
+            Item::ScrewAttack => "Screw Attack",
+            Item::Morph => "Morph Ball",
+            Item::ReserveTank => "Reserve Tank",
+            Item::WallJump => "WallJump Boots",
+            Item::SparkBooster => "Spark Booster",
+            Item::BlueBooster => "Blue Booster",
+            Item::Nothing => return None,
+        })
+    }
+
+    /// Index used for the item collection times. `Nothing` has no slot,
+    /// so items after it shift down by one.
+    pub fn stats_index(self) -> Option<usize> {
+        match self {
+            Item::Nothing => None,
+            _ if self > Item::Nothing => Some(self as usize - 1),
+            _ => Some(self as usize),
+        }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]

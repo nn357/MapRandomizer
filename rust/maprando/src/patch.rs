@@ -237,6 +237,66 @@ pub struct Patcher<'a> {
     pub extra_room_data: HashMap<RoomPtr, ExtraRoomData>,
 }
 
+// shared between credits / stats.
+const BLUE: isize = 1 << 10;
+const ORANGE: isize = 2 << 10;
+const GREEN: isize = 3 << 10;
+const RED: isize = 4 << 10;
+const YELLOW: isize = 5 << 10;
+const PURPLE: isize = 6 << 10;
+const WHITE: isize = 7 << 10;
+const COLON_TILE: isize = 0x141E;
+
+// (area name, code, palette), stats screen
+const AREAS: [(&str, &str, isize); 6] = [
+    ("crateria", "C", PURPLE),
+    ("brinstar", "B", GREEN),
+    ("norfair", "N", RED),
+    ("wrecked ship", "W", YELLOW),
+    ("maridia", "M", BLUE),
+    ("tourian", "T", ORANGE),
+];
+
+fn area_code_and_palette(area: &str) -> Result<(&'static str, isize)> {
+    match AREAS.iter().find(|a| area.eq_ignore_ascii_case(a.0)) {
+        Some(&(_, code, palette)) => Ok((code, palette)),
+        None => bail!("unexpected area name: {}", area),
+    }
+}
+
+// Letters only: valid for both the credits and stats screen.
+fn letter_tile(c: char) -> Result<isize> {
+    match c.to_ascii_uppercase() {
+        u @ 'A'..='Z' => Ok(u as isize - 'A' as isize),
+        _ => bail!("unsupported character: {c}"),
+    }
+}
+
+// Letters, digits and colon, using the stats screen 8x8 tiles.
+fn stats_tile(c: char) -> Result<isize> {
+    match c {
+        ':' => Ok(COLON_TILE & 0x03FF),
+        '0'..='9' => Ok(step_digit_tile(c as u16 - '0' as u16)? & 0x03FF),
+        _ => letter_tile(c),
+    }
+}
+
+// Writes one line of text. Spaces leave the existing tile untouched.
+fn write_text(
+    rom: &mut Rom,
+    addr: usize,
+    palette: isize,
+    text: &str,
+    tile: fn(char) -> Result<isize>,
+) -> Result<()> {
+    for (i, c) in text.chars().enumerate() {
+        if c != ' ' {
+            rom.write_u16(addr + i * 2, palette | tile(c)?)?;
+        }
+    }
+    Ok(())
+}
+
 pub fn xy_to_map_offset(x: isize, y: isize) -> isize {
     let y1 = y + 1;
     if x < 32 {
@@ -257,18 +317,6 @@ pub fn xy_to_explored_bit_ptr(x: isize, y: isize) -> (isize, u8) {
     let offset_bit_part = 7 - offset_in_bits % 8;
     let offset_bitmask = 1 << offset_bit_part;
     (offset_byte_part, offset_bitmask)
-}
-
-fn area_code_and_palette(area: &str) -> Result<(&'static str, isize)> {
-    Ok(match area.to_ascii_lowercase().as_str() {
-        "crateria" => ("C", 0x1800),
-        "brinstar" => ("B", 0x0C00),
-        "norfair" => ("N", 0x1000),
-        "wrecked ship" => ("W", 0x1400),
-        "maridia" => ("M", 0x0400),
-        "tourian" => ("T", 0x0800),
-        _ => bail!("unexpected area name: {}", area),
-    })
 }
 
 fn step_digit_tile(digit: u16) -> Result<isize> {
@@ -2161,58 +2209,20 @@ impl Patcher<'_> {
         const STATS_SCREEN_TABLE2: usize = STATS_SCREEN_TABLE + STATS_SCREEN_TABLE_BYTES; // $EABA38
         const HEADER_ROW: usize = 1;
         const HEADER_COL: usize = 2;
-        const HEADER_PALETTE: isize = 0x0400; // palette 1
         const FIRST_ITEM_ROW: usize = 3;
         const STATS_SCREEN_MAX_ROWS: usize = STATS_SCREEN_HEIGHT - FIRST_ITEM_ROW;
         const BLANK_TILE: isize = 0x004F;
-        const COLON_TILE: isize = 0x141E;
         const STEP_COL: usize = 1;
-        const ITEM_COL: usize = 7;
         const LOC_COL: usize = 5;
-
-        // item_name_pairs: same list as in apply_credits (worth pulling out into a shared helper)
-        let item_name_pairs: Vec<(String, String)> = [
-            ("ETank", "Energy Tank"),
-            ("Missile", "Missile"),
-            ("Super", "Super Missile"),
-            ("PowerBomb", "Power Bomb"),
-            ("Bombs", "Bombs"),
-            ("Charge", "Charge Beam"),
-            ("Ice", "Ice Beam"),
-            ("HiJump", "HiJump Boots"),
-            ("SpeedBooster", "Speed Booster"),
-            ("Wave", "Wave Beam"),
-            ("Spazer", "Spazer"),
-            ("SpringBall", "Spring Ball"),
-            ("Varia", "Varia Suit"),
-            ("Gravity", "Gravity Suit"),
-            ("XRayScope", "XRay Scope"),
-            ("Plasma", "Plasma Beam"),
-            ("Grapple", "Grappling Beam"),
-            ("SpaceJump", "Space Jump"),
-            ("ScrewAttack", "Screw Attack"),
-            ("Morph", "Morph Ball"),
-            ("ReserveTank", "Reserve Tank"),
-            ("WallJump", "WallJump Boots"),
-            ("SparkBooster", "Spark Booster"),
-            ("BlueBooster", "Blue Booster"),
-        ]
-        .into_iter()
-        .map(|(x, y)| (x.to_string(), y.to_string()))
-        .collect();
-        let item_display_name_map: HashMap<String, String> =
-            item_name_pairs.iter().cloned().collect();
-        let item_name_index: HashMap<String, usize> = item_name_pairs
-            .iter()
-            .enumerate()
-            .map(|(i, x)| (x.0.clone(), i))
-            .collect();
+        const ITEM_COL: usize = 7;
+        const SEED_END_COL: usize = 30; // one past the last seed column (right align with time digits on stats screen)
 
         let table = snes2pc(STATS_SCREEN_TABLE);
+        let table2 = snes2pc(STATS_SCREEN_TABLE2);
+        let offset = |row: usize, col: usize| (row * STATS_SCREEN_WIDTH + col) * 2;
 
         // Blank both screens and mark every row as having no item
-        for addr in [STATS_SCREEN_TABLE, STATS_SCREEN_TABLE2] {
-            let pc = snes2pc(addr);
+        for pc in [table, table2] {
             for i in 0..STATS_SCREEN_TILES {
                 self.rom.write_u16(pc + i * 2, BLANK_TILE)?;
             }
@@ -2222,116 +2232,67 @@ impl Patcher<'_> {
             }
         }
 
-        // Header
-        for (i, c) in "STATISTICS".chars().enumerate() {
-            let word = HEADER_PALETTE | (c as isize - 'A' as isize);
-            let offset = HEADER_ROW * STATS_SCREEN_WIDTH + HEADER_COL + i;
-            self.rom.write_u16(table + offset * 2, word)?;
-        }
-        let colon_offset = HEADER_ROW * STATS_SCREEN_WIDTH + HEADER_COL + "STATISTICS".len();
-        self.rom.write_u16(
-            table + colon_offset * 2,
-            HEADER_PALETTE | (COLON_TILE & 0x03FF),
-        )?;
+        // Header, then seed hash (right aligned, white)
+        let header = table + offset(HEADER_ROW, HEADER_COL);
+        write_text(self.rom, header, BLUE, "STATISTICS:", stats_tile)?;
 
-        // Seed hash: uppercase, right aligned, white (palette 7)
-        const SEED_END_COL: usize = 30; // one past the last seed column (right align with time digits on stats screen)
-        let seed_name = self.randomization.seed_name.to_ascii_uppercase();
-        assert!(seed_name.len() <= 12, "Seed hash exceeds header row width");
+        let seed_name = self.randomization.seed_name.as_str();
+        ensure!(seed_name.len() <= 12, "Seed hash exceeds header row width");
         let seed_col = SEED_END_COL - seed_name.len();
+        let seed_addr = table + offset(HEADER_ROW, seed_col);
+        write_text(self.rom, seed_addr, WHITE, seed_name, stats_tile)?;
 
-        for (i, c) in seed_name.chars().enumerate() {
-            let tile = match c.to_digit(10) {
-                Some(d) => step_digit_tile(d as u16)? & 0x03FF,
-                None => c as isize - 'A' as isize,
-            };
-            let offset = HEADER_ROW * STATS_SCREEN_WIDTH + seed_col + i;
-            self.rom.write_u16(table + offset * 2, 0x1C00 | tile)?;
-        }
-        let mut row = 0usize;
-
-        for item_info in self
-            .randomization
-            .essential_spoiler_data
-            .item_spoiler_info
-            .iter()
-        {
+        let mut row = FIRST_ITEM_ROW;
+        for item_info in &self.randomization.essential_spoiler_data.item_spoiler_info {
             // Only items with a logic step above 0 get a row
-            let (Some(step), Some(area)) = (item_info.step, item_info.area.as_ref()) else {
+            let (Some(step), Some(area)) = (item_info.step, item_info.area.as_deref()) else {
                 continue;
             };
             if step == 0 {
                 continue;
             }
-            if row >= STATS_SCREEN_MAX_ROWS {
+            if row >= FIRST_ITEM_ROW + STATS_SCREEN_MAX_ROWS {
                 bail!("too many items for the stats screen");
             }
             if step > 99 {
                 bail!("step {} exceeds 2-digit display", step);
             }
 
-            let raw_name = Item::VARIANTS[item_info.item as usize].to_string();
-            let item_name = &item_display_name_map[&raw_name];
-            let item_idx = item_name_index[&raw_name];
+            let item = item_info.item;
+            let (Some(name), Some(item_idx)) = (item.display_name(), item.stats_index()) else {
+                bail!("item {:?} cannot be shown on the stats screen", item);
+            };
             let (code, code_palette) = area_code_and_palette(area)?;
+            let base = table + offset(row, 0);
 
-            let screen_row = FIRST_ITEM_ROW + row;
-            let base = table + screen_row * STATS_SCREEN_WIDTH * 2;
-            let tens = (step / 10) as u16;
-            let ones = (step % 10) as u16;
-            let tens_tile = if tens == 0 {
-                BLANK_TILE
-            } else {
-                step_digit_tile(tens)?
+            let tens_tile = match step / 10 {
+                0 => BLANK_TILE,
+                tens => step_digit_tile(tens as u16)?,
             };
             self.rom.write_u16(base + STEP_COL * 2, tens_tile)?;
-            self.rom
-                .write_u16(base + (STEP_COL + 1) * 2, step_digit_tile(ones)?)?;
+            self.rom.write_u16(
+                base + (STEP_COL + 1) * 2,
+                step_digit_tile((step % 10) as u16)?,
+            )?;
             self.rom.write_u16(base + (STEP_COL + 2) * 2, COLON_TILE)?;
 
-            // Item name, white (palette 7), starting at column 5
-            for (i, c) in item_name.chars().enumerate() {
-                let c = c.to_ascii_uppercase();
-                if c.is_ascii_uppercase() {
-                    let word = 0x1C00 | (c as isize - 'A' as isize);
-                    self.rom.write_u16(base + (ITEM_COL + i) * 2, word)?;
-                }
-            }
-
-            // Location code in the area's palette
-            for (i, c) in code.chars().enumerate() {
-                let word = code_palette | (c as isize - 'A' as isize);
-                self.rom.write_u16(base + (LOC_COL + i) * 2, word)?;
-            }
+            write_text(self.rom, base + ITEM_COL * 2, WHITE, name, stats_tile)?;
+            write_text(self.rom, base + LOC_COL * 2, code_palette, code, stats_tile)?;
 
             // Item type index, for the runtime time lookup
             self.rom.write_u16(
-                table + STATS_SCREEN_TILEMAP_BYTES + screen_row * 2,
+                table + STATS_SCREEN_TILEMAP_BYTES + row * 2,
                 item_idx as isize,
             )?;
-
             row += 1;
         }
-        // ---- Screen 2: mission report (static text only) ----
-        const WHITE: isize = 7;
-        const BLUE: isize = 1;
-        const ORANGE: isize = 2;
-        const GREEN: isize = 3;
-        const RED: isize = 4;
-        const YELLOW: isize = 5;
-        const PURPLE: isize = 6;
 
+        // ---- Screen 2: mission report (static text only) ----
         // (row, column, palette, text)
         let labels = [
             (1, 1, BLUE, "MISSION REPORT:"),
-            (1, seed_col, WHITE, seed_name.as_str()),
+            (1, seed_col, WHITE, seed_name),
             (3, 11, WHITE, "FINAL TIME"),
-            (6, 2, PURPLE, "C"),
-            (7, 2, GREEN, "B"),
-            (8, 2, RED, "N"),
-            (6, 18, YELLOW, "W"),
-            (7, 18, BLUE, "M"),
-            (8, 18, ORANGE, "T"),
             (10, 8, WHITE, "PAUSE"),
             (12, 13, BLUE, "ITEMS"),
             (20, 6, WHITE, "MISSILES"),
@@ -2341,21 +2302,16 @@ impl Patcher<'_> {
             (24, 6, WHITE, "RESERVE TANKS"),
             (26, 4, WHITE, "ITEM COLLECTION:"),
         ];
-
-        let table2 = snes2pc(STATS_SCREEN_TABLE2);
         for (row, col, palette, text) in labels {
-            for (i, c) in text.chars().enumerate() {
-                let tile = match c.to_ascii_uppercase() {
-                    'A'..='Z' => c as isize - 'A' as isize,
-                    ':' => COLON_TILE & 0x03FF,
-                    ' ' => continue, // already blank
-                    '0'..='9' => step_digit_tile(c as u16 - '0' as u16)? & 0x03FF,
-                    _ => bail!("unsupported stats screen character: {c}"),
-                };
-                let offset = row * STATS_SCREEN_WIDTH + col + i;
-                self.rom
-                    .write_u16(table2 + offset * 2, (palette << 10) | tile)?;
-            }
+            let addr = table2 + offset(row, col);
+            write_text(self.rom, addr, palette, text, stats_tile)?;
+        }
+
+        // Area letters: two columns of three
+        for (i, &(_, code, palette)) in AREAS.iter().enumerate() {
+            let col = if i < 3 { 2 } else { 18 };
+            let addr = table2 + offset(6 + i % 3, col);
+            write_text(self.rom, addr, palette, code, stats_tile)?;
         }
         Ok(())
     }
@@ -2382,23 +2338,9 @@ impl Patcher<'_> {
             self.rom.write_u16(base_addr + 6 + 0x40, 0x5A)?;
         }
 
-        // Write item text
-        for (i, c) in item.chars().enumerate() {
-            let c = c.to_ascii_uppercase();
-            if c.is_ascii_uppercase() {
-                let word = 0x0400 | (c as isize - 'A' as isize);
-                self.rom.write_u16(base_addr + (i + 5) * 2, word)?;
-            }
-        }
-
-        // Write area text
-        for (i, c) in area.chars().enumerate() {
-            let c = c.to_ascii_uppercase();
-            if c.is_ascii_uppercase() {
-                let word = 0x0C00 | (c as isize - 'A' as isize);
-                self.rom.write_u16(base_addr + (i + 5) * 2 + 0x40, word)?;
-            }
-        }
+        // Item text, with the area text on the line below
+        write_text(self.rom, base_addr + 10, 0x0400, item, letter_tile)?;
+        write_text(self.rom, base_addr + 10 + 0x40, 0x0C00, area, letter_tile)?;
 
         if let Some(item_idx) = item_idx {
             // Write stats address for collection time
@@ -2433,43 +2375,6 @@ impl Patcher<'_> {
         self.write_preset(230, self.settings.quality_of_life_settings.preset.clone())?;
 
         // Write item locations in credits tilemap
-        let item_name_pairs: Vec<(String, String)> = [
-            ("ETank", "Energy Tank"),
-            ("Missile", "Missile"),
-            ("Super", "Super Missile"),
-            ("PowerBomb", "Power Bomb"),
-            ("Bombs", "Bombs"),
-            ("Charge", "Charge Beam"),
-            ("Ice", "Ice Beam"),
-            ("HiJump", "HiJump Boots"),
-            ("SpeedBooster", "Speed Booster"),
-            ("Wave", "Wave Beam"),
-            ("Spazer", "Spazer"),
-            ("SpringBall", "Spring Ball"),
-            ("Varia", "Varia Suit"),
-            ("Gravity", "Gravity Suit"),
-            ("XRayScope", "XRay Scope"),
-            ("Plasma", "Plasma Beam"),
-            ("Grapple", "Grappling Beam"),
-            ("SpaceJump", "Space Jump"),
-            ("ScrewAttack", "Screw Attack"),
-            ("Morph", "Morph Ball"),
-            ("ReserveTank", "Reserve Tank"),
-            ("WallJump", "WallJump Boots"),
-            ("SparkBooster", "Spark Booster"),
-            ("BlueBooster", "Blue Booster"),
-        ]
-        .into_iter()
-        .map(|(x, y)| (x.to_string(), y.to_string()))
-        .collect();
-        let item_display_name_map: HashMap<String, String> =
-            item_name_pairs.iter().cloned().collect();
-        let item_name_index: HashMap<String, usize> = item_name_pairs
-            .iter()
-            .enumerate()
-            .map(|(i, x)| (x.0.clone(), i))
-            .collect();
-
         for (idx, item_info) in self
             .randomization
             .essential_spoiler_data
@@ -2477,31 +2382,18 @@ impl Patcher<'_> {
             .iter()
             .enumerate()
         {
-            let raw_name = Item::VARIANTS[item_info.item as usize].to_string();
-            let item_name = item_display_name_map[&raw_name].clone();
-            let item_idx = item_name_index[&raw_name];
-            match item_info.step {
-                Some(0) => {
-                    self.write_item_credits(idx, None, &item_name, None, "starting item")?;
-                }
-                Some(_) => {
-                    self.write_item_credits(
-                        idx,
-                        item_info.step,
-                        &item_name,
-                        Some(item_idx),
-                        item_info.area.as_ref().unwrap(),
-                    )?;
-                }
-                None => {
-                    if let Some(area) = item_info.area.as_ref() {
-                        // Placed but logically uncollectable item:
-                        self.write_item_credits(idx, None, &item_name, Some(item_idx), area)?;
-                    } else {
-                        self.write_item_credits(idx, None, &item_name, None, "not placed")?;
-                    }
-                }
-            }
+            let item = item_info.item;
+            let Some(name) = item.display_name() else {
+                bail!("no display name for item {:?}", item);
+            };
+            let (step, item_idx, location) = match (item_info.step, item_info.area.as_deref()) {
+                (Some(0), _) => (None, None, "starting item"),
+                (Some(step), None) => bail!("item at step {} has no area", step),
+                // step is None for a placed but logically uncollectable item
+                (step, Some(area)) => (step, item.stats_index(), area),
+                (None, None) => (None, None, "not placed"),
+            };
+            self.write_item_credits(idx, step, name, item_idx, location)?;
         }
         Ok(())
     }
