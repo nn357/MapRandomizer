@@ -36,7 +36,6 @@ use maprando_game::{
 use ndarray::Array3;
 use rand::{Rng, SeedableRng};
 use std::iter;
-use strum::VariantNames;
 
 use self::map_tiles::write_tile_4bpp;
 
