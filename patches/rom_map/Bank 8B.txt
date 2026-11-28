@@ -1,5 +1,5 @@
 F760 - F769: ; escape_items.asm
 F770 - F893: ; credits.asm
 F900 - FAC5: ; item_count.asm
-FAC5 - FB2A: ; stats_screen.asm
-FB2A - FFFF: [free]
+FAC5 - FB2E: ; stats_screen.asm
+FB2E - FFFF: [free]

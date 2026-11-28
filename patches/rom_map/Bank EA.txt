@@ -2,5 +2,5 @@
 ADF0 - AFFF: [FREE]
 B000 - B0FF: ; sprite_tube.asm, customize/sprite_tube.rs (active room table)
 B100 - B2FF: ; customize/sprite_tube.rs (remapped tube graphics DMA payloads)
-B300 - C666: ; stats_screen.asm, stats screens tilemaps
-C666 - FFFF: [FREE]
+B300 - C7C6: ; stats_screen.asm, stats screens tilemaps
+C7C6 - FFFF: [FREE]

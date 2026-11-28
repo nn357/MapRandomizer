@@ -10,26 +10,28 @@ lorom
 incsrc "constants.asm"
 
 !bank_8b_free_space_start = $8bfac5
-!bank_8b_free_space_end = $8bfb2a
+!bank_8b_free_space_end = $8bfb2e
 
 !bank_df_free_space_start = $dfec32
-!bank_df_free_space_end = $dffef0
+!bank_df_free_space_end = $dff241
 
 !bank_ea_free_space_start = $eab300
-!bank_ea_free_space_end = $eac666
+!bank_ea_free_space_end = $eac7c6
 
 !stats_table_bank = $ea
+!collected_beams = $09a8
+!collected_items = $1f5d
 !stats_screen_var = $7ef5a6
 !stats_palette_upload = $7ef5a8
 !stats_game_finished = $7ef5aa
 
 !nothing_item_total = $dfff0e     ; modified by patch.rs, defined in item_count.asm
 !initial_item_bits  = $b5fe12     ; wrote by patch.rs
-
+!settings_flags = $dfff05
 
 ;;; tiles with fixed palettes
 !stats_percent = $1C7B ; tile 7B palette 7
-!stats_slash   = $1C98 ; tile 98 palette 7
+!stats_slash   = $1C7C ; tile 7C palette 7
 !stats_colon = $1C1E ; tile 1E palette 7
 !stats_period = $1C1C ; tile 1C palette  7
 
@@ -44,7 +46,12 @@ org $8be7af
 
 org $8CE12D                                                                     ;] see you next mission #delete
   dw end_of_game
-  
+
+org $91e5f0
+  jml backup_items                                                        
+  nop #2
+org $91e5f6
+backup_finished:
 ;;; custom code
 
 org !bank_8b_free_space_start
@@ -87,7 +94,7 @@ stats_handler:
 
 .screen:
     jsl update_stats_screen         ; flips the screen variable and uploads that screen
-
+    jsl $808338                     ; wait for nmi (vblank is off so we have time for transfers to finish)
     ; forced blank off
     sep #$20
     pla : sta.b $51 : sta.w $2100
@@ -104,18 +111,19 @@ end_of_game:
     pla
     jmp $9698
 
+print "Bank $8b free space ends at: $", pc 
 assert pc() <= !bank_8b_free_space_end
 
 org !bank_df_free_space_start
 
 stats_palettes:
-  dw $0000, $BF03, $7802, $EC00, $735A, $AD41, $082D, $6318, $B10B, $1700, $9F31, $FF7F, $FF7F, $FB48, $FF7F, $0000 ; 0 CRE
-  dw $0000, $7DA4, $28C6 : rep 13 : dw $0000   ; 1 blue (Maridia, header)
-  dw $0000, $023F, $28C6 : rep 13 : dw $0000   ; 2 orange (Tourian)
-  dw $0000, $17E9, $28C6 : rep 13 : dw $0000   ; 3 green (Brinstar)
-  dw $0000, $001D, $28C6 : rep 13 : dw $0000   ; 4 red (Norfair)
-  dw $0000, $2717, $28C6 : rep 13 : dw $0000   ; 5 yellow (Wrecked Ship)
-  dw $0000, $7C74, $28C6 : rep 13 : dw $0000   ; 6 purple (Crateria)
+  dw $0000, $02DF, $01D7, $00AC, $5A73, $41AD, $2D08, $1863, $0BB1, $0017, $319F, $7FFF, $7FFF, $48FB, $7FFF, $0000 ; CRE
+  dw $0000, $7DA4, $28C6, $0BB1, $1EA9, $0145, $7FFF : rep 9 : dw $0000 ; 1 blue / Plasma
+  dw $0000, $023F, $28C6, $72BC, $48FB, $1816, $7FFF : rep 9 : dw $0000 ; 2 orange / Wave
+  dw $0000, $17E9, $28C6, $4A52, $72B2, $71C7, $4D03, $0000, $0000, $0000, $0000, $0000, $0000, $0000, $7FFF, $0000 ; 3 green / Ice / Blue Booster
+  dw $0000, $001D, $28C6, $34C5, $2882, $7F34, $7D00 : rep 9 : dw $0000 ; 4 red / X-Ray
+  dw $0000, $2717, $28C6, $02DF, $5A73, $41AD, $2D08, $1863, $0BB1, $48FB, $0000, $0000, $7FFF, $44E5, $0000, $0000 ; 5 yellow (WS) / Morph / Speed
+  dw $0000, $7C74, $28C6, $15A3, $5EBB, $3DB3, $292E, $1486, $0000, $4A52, $318C, $0000, $7FFF, $294A, $4631, $7FFF ; 6 purple (Crateria) / WJB
   dw $0000, $7FFF, $28C6 : rep 13 : dw $0000   ; 7 white
 
 digits_8x8_4bpp:
@@ -141,7 +149,94 @@ digits_8x8_4bpp:
   db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; 9
   db $00,$FF,$66,$99,$6C,$93,$18,$E7,$36,$C9,$66,$99,$00,$FF,$00,$00  
   db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; %
-  
+  db $00,$0F,$06,$19,$0C,$33,$18,$26,$18,$64,$30,$CC,$60,$98,$00,$F0
+  db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00  ; /
+
+ice_crystal_tile:
+    db $3E,$22,$63,$49,$49,$08,$49,$08
+    db $49,$08,$63,$49,$3E,$22,$00,$00
+    db $1C,$00,$3E,$00,$7F,$08,$7F,$08
+    db $7F,$08,$3E,$00,$1C,$00,$00,$00
+
+plasma_crystal_tile:
+    db $22,$00,$5D,$1C,$1E,$3E,$3E,$3C
+    db $3C,$3C,$5D,$1C,$22,$00,$00,$00
+    db $3E,$00,$7F,$1C,$73,$12,$5F,$1C
+    db $53,$10,$73,$10,$3E,$00,$00,$00
+    
+wave_crystal_tile:
+    db $22,$00,$4D,$1C,$2E,$3E,$3E,$3E
+    db $3E,$2A,$5D,$1C,$22,$00,$00,$00
+    db $3E,$00,$73,$00,$7B,$2A,$6B,$2A
+    db $7F,$2A,$77,$14,$3E,$00,$00,$00
+    
+xray_scope_tiles:
+    ; Top-left ($89:8980)
+    db $00,$00,$00,$01,$00,$02,$01,$03
+    db $01,$04,$01,$05,$03,$0A,$01,$09
+    db $00,$00,$01,$00,$03,$00,$02,$00
+    db $07,$00,$06,$00,$0D,$00,$0E,$00
+
+    ; Top-right ($89:89A0)
+    db $00,$00,$00,$80,$00,$40,$80,$C0
+    db $80,$20,$C0,$E0,$C0,$50,$80,$90
+    db $00,$00,$80,$00,$C0,$00,$40,$00
+    db $E0,$00,$20,$00,$B0,$00,$70,$00
+
+morph_tiles:
+    ; TL
+    db $08,$00,$27,$00,$5F,$03,$3F,$08
+    db $BF,$12,$7D,$25,$78,$28,$7D,$25
+    db $0F,$0F,$3F,$3F,$7F,$7F,$7C,$7F
+    db $F0,$FD,$F2,$FA,$E7,$F7,$E2,$FA
+    ; TR
+    db $20,$00,$C8,$00,$F4,$80,$F8,$20
+    db $FA,$10,$FC,$08,$FC,$88,$FC,$08
+    db $E0,$E0,$F8,$F8,$FC,$FC,$7C,$FC
+    db $1E,$FE,$1E,$FE,$0E,$7E,$0E,$FE
+    ; BL
+    db $7F,$22,$7F,$20,$BF,$10,$3F,$08
+    db $5F,$03,$27,$00,$08,$00,$00,$00
+    db $E0,$FD,$F0,$FF,$F0,$FF,$7C,$7F
+    db $7F,$7F,$3F,$3F,$0F,$0F,$00,$00
+    ; BR
+    db $FC,$08,$FC,$08,$FA,$10,$F8,$20
+    db $F4,$80,$C8,$00,$20,$00,$00,$00
+    db $0E,$FE,$1E,$FE,$1E,$FE,$7C,$FC
+    db $FC,$FC,$F8,$F8,$E0,$E0,$00,$00
+speed_tiles:
+    ; TL
+    db $38,$40,$3F,$FF,$44,$C0,$48,$C0
+    db $D1,$40,$E7,$40,$DC,$40,$70,$40
+    db $7F,$01,$FF,$00,$FC,$30,$F8,$20
+    db $F1,$01,$E7,$07,$DD,$1F,$F7,$3F
+    ; TR
+    db $1C,$02,$FC,$FF,$1E,$03,$76,$03
+    db $CF,$02,$1B,$02,$33,$02,$62,$02
+    db $FE,$80,$FF,$00,$1F,$1C,$77,$7C
+    db $CF,$FC,$1B,$F8,$33,$F0,$63,$E0
+    ; BL
+    db $40,$00,$F0,$40,$CC,$40,$C3,$40
+    db $40,$C0,$40,$C0,$3F,$FF,$38,$40
+    db $CC,$7F,$F0,$3F,$CC,$0F,$C3,$03
+    db $C0,$00,$C0,$00,$FF,$00,$7F,$01
+    ; BR
+    db $42,$02,$63,$02,$33,$02,$1B,$02
+    db $CE,$03,$36,$03,$FC,$FF,$1C,$02
+    db $43,$C0,$63,$E0,$33,$F0,$1B,$F8
+    db $CF,$FC,$37,$3C,$FF,$00,$FE,$80
+bluebooster_tiles:
+    ; TL
+    db $00,$03,$01,$0E,$06,$39,$14,$63
+    db $6C,$82,$1C,$63,$06,$19,$01,$06
+    db $03,$00,$0F,$00,$3F,$00,$7F,$00
+    db $FF,$00,$7F,$00,$1F,$00,$07,$00
+    ; TR
+    db $70,$80,$50,$84,$30,$88,$60,$10
+    db $40,$30,$60,$10,$30,$88,$50,$84
+    db $FE,$00,$FE,$04,$FE,$08,$FC,$10
+    db $F8,$30,$FC,$10,$FE,$08,$FE,$04
+    
 ;setup_stats:
 ;    php
 ;    rep #$20
@@ -154,7 +249,13 @@ digits_8x8_4bpp:
 ;    plp
 ;    jsl $80824f                     ; replaced code
 ;    rtl 
-  
+backup_items:
+    lda $09A4
+    sta !collected_items
+    lda #$1009
+    sta $09a6
+    jml backup_finished
+
 upload_stats_graphics:
     php
     rep #$30
@@ -212,8 +313,8 @@ upload_stats_graphics:
     lda.w #$49E0
     sta.w $00E3,x
     
-     ; entry 4: percent -> VRAM word $47F0
-    lda.w #32                       ; 1 tile * 32 bytes
+     ; entry 4: percent and mini slash -> VRAM word $47F0
+    lda.w #64                       ; 2 tiles * 32 bytes
     sta.w $00E5,x
     lda.w #digits_8x8_4bpp+320
     sta.w $00E7,x
@@ -228,11 +329,72 @@ upload_stats_graphics:
     clc
     adc.w #$001C                    ; advance pointer past 4 entries (4 * 7)
     sta.w $0330
-
+    
+    jsr upload_item_icons           ; add the icons to VRAM
+    jsr upload_custom_tiles         ; use icons that have remapped palette indicies where appropriate.
+    
     plx
     plp
     rtl
-  
+    
+upload_item_icons:                  ; 16-bit A/X/Y
+    ldy.w $0330
+    ldx.w #$0000
+.loop:
+    lda.w #$0080 : sta.w $00D0,y
+    lda.l .table,x : sta.w $00D2,y
+    sep #$20
+    lda.b #$89 : sta.w $00D4,y
+    rep #$20
+    lda.l .table+2,x : sta.w $00D5,y
+    tya : clc : adc.w #$0007 : tay
+    inx #4
+    cpx.w #.table_end-.table
+    bne .loop
+    sty.w $0330
+    rts
+
+.table:  ; source, VRAM
+    dw $8B00,$5800, $8C00,$5840, $8D00,$5880, $8F00,$58C0, $8E00,$5900
+    dw $8700,$5940, $8000,$5980, $8200,$59C0, $9180,$5A00
+    dw $8300,$5A40, $8100,$5A80, $8400,$5AC0, $8600,$5B00, $8500,$5B40
+    dw $8800,$5B80, $8980,$5BC0, $8A00,$5C00, $9700,$5C40, $9600,$5C80
+.table_end:
+    
+upload_custom_tiles:                ; 16-bit A/X/Y
+    ldy.w $0330
+    ldx.w #$0000
+.loop:
+    lda.w #$0020 : sta.w $00D0,y    ; one 4bpp tile
+    lda.l .table,x : sta.w $00D2,y  ; source address
+    lda.l .table+2,x : sta.w $00D4,y ; source bank (extra byte is overwritten next)
+    lda.l .table+3,x : sta.w $00D5,y ; VRAM destination
+    tya : clc : adc.w #$0007 : tay
+    txa : clc : adc.w #$0005 : tax
+    cpx.w #.table_end-.table
+    bne .loop
+    sty.w $0330
+    rts
+
+.table:  ; 24-bit source, VRAM
+    dl ice_crystal_tile      : dw $5850
+    dl wave_crystal_tile     : dw $5890
+    dl plasma_crystal_tile   : dw $5910
+    dl xray_scope_tiles      : dw $5BC0  ; top-left
+    dl xray_scope_tiles+$20  : dw $5BD0  ; top-right  
+    dl morph_tiles           : dw $5940
+    dl morph_tiles+$20       : dw $5950
+    dl morph_tiles+$40       : dw $5960
+    dl morph_tiles+$60       : dw $5970  
+    dl speed_tiles           : dw $5C00
+    dl speed_tiles+$20       : dw $5C10
+    dl speed_tiles+$40       : dw $5C20
+    dl speed_tiles+$60       : dw $5C30    
+    dl bluebooster_tiles     : dw $5C40
+    dl bluebooster_tiles+$20 : dw $5C50
+.table_end:
+
+print "Bank $DF free space ends at: $", pc
 assert pc() <= !bank_df_free_space_end
 
 org !bank_ea_free_space_start
@@ -271,6 +433,7 @@ update_stats_screen:
 .report:
     jsr stats_draw_report
     jsr stats_draw_items
+    jsr stats_draw_icons
 .queue:
     plb
     ldx.w $0330
@@ -573,7 +736,7 @@ stats_draw_items:
     rep #$20
 
     tya
-    ldy.w #$366A
+    ldy.w #$36AA
     jsr stats_draw_number
 
     lda.l !nothing_item_total
@@ -631,4 +794,60 @@ stats_draw_number:
     iny #2
     rts
 
+stats_draw_icons:                   ; DB = $7E, 16-bit A/X/Y
+    ldx.w #$0000
+.loop:
+    jsr stats_draw_icon
+    txa : clc : adc.w #14 : tax
+    cpx.w #stats_icon_table_speed_entry-stats_icon_table
+    bne .loop
+
+    ; X = Speed Booster entry; Spark Booster is the one after it
+    lda.l !settings_flags
+    and.w #$0002
+    beq .last
+    txa : clc : adc.w #14 : tax
+.last:
+    jmp stats_draw_icon
+
+; X = offset into stats_icon_table. Preserves X, clobbers A and Y
+stats_draw_icon:
+    lda.l stats_icon_table,x : tay
+    lda.w $0000,y
+    and.l stats_icon_table+2,x
+    beq .done
+    lda.l stats_icon_table+4,x : tay
+    lda.l stats_icon_table+6,x  : sta.w $0000,y
+    lda.l stats_icon_table+8,x  : sta.w $0002,y
+    lda.l stats_icon_table+10,x : sta.w $0040,y
+    lda.l stats_icon_table+12,x : sta.w $0042,y
+.done:
+    rts
+
+stats_icon_table:
+    ;  flags address,   mask,  buffer, TL,    TR,    BL,    BR
+    ; top row
+    dw !collected_beams, $1000, $3386, $0180, $0181, $0182, $0183  ; Charge
+    dw !collected_beams, $0002, $338C, $0184, $0D85, $0186, $0187  ; Ice
+    dw !collected_beams, $0001, $3392, $0188, $0989, $018A, $018B  ; Wave
+    dw !collected_beams, $0004, $3398, $018C, $018D, $018E, $018F  ; Spazer
+    dw !collected_beams, $0008, $339E, $0190, $0591, $0192, $0193  ; Plasma
+    dw !collected_items, $0004, $33A4, $1594, $1595, $1596, $1597  ; Morph
+    dw !collected_items, $1000, $33AA, $0198, $0199, $019A, $019B  ; Bombs
+    dw !collected_items, $0002, $33B0, $019C, $019D, $019E, $019F  ; Spring Ball
+    dw !collected_items, $0400, $33B6, $19A0, $19A1, $19A2, $19A3  ; Wall Jump
+    ; bottom row
+    dw !collected_items, $0001, $3446, $01A4, $01A5, $01A6, $01A7  ; Varia
+    dw !collected_items, $0020, $344C, $01A8, $01A9, $01AA, $01AB  ; Gravity
+    dw !collected_items, $0100, $3452, $01AC, $01AD, $01AE, $01AF  ; Hi-Jump
+    dw !collected_items, $0200, $3458, $01B0, $01B1, $01B2, $01B3  ; Space Jump
+    dw !collected_items, $0008, $345E, $01B4, $01B5, $01B6, $01B7  ; Screw Attack
+    dw !collected_items, $4000, $3464, $01B8, $01B9, $01BA, $01BB  ; Grapple
+    dw !collected_items, $8000, $346A, $11BC, $11BD, $01BE, $01BF  ; X-Ray
+    dw !collected_items, $0040, $3476, $0DC4, $0DC5, $01C6, $01C7  ; Blue Booster
+.speed_entry:
+    dw !collected_items, $2000, $3470, $15C0, $15C1, $15C2, $15C3  ; Speed Booster
+    dw !collected_items, $0080, $3470, $01C8, $01C9, $01CA, $01CB  ; Spark Booster
+
+print "Bank $EA free space ends at: $", pc 
 assert pc() <= !bank_ea_free_space_end
